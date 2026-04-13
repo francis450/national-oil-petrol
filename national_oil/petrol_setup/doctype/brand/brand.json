@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "autoname": "field:brand_name",
+ "creation": "2026-04-12 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "brand_name",
+  "col_break_1",
+  "description",
+  "section_supplier",
+  "supplier",
+  "supplier_contact"
+ ],
+ "fields": [
+  {
+   "fieldname": "brand_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Brand Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_supplier",
+   "fieldtype": "Section Break",
+   "label": "Supplier Details"
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Supplier",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "supplier_contact",
+   "fieldtype": "Data",
+   "label": "Supplier Contact"
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Petrol Setup",
+ "name": "Brand",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1},
+  {"role": "Store Keeper", "read": 1},
+  {"role": "Accountant", "read": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "brand_name",
+ "track_changes": 0
+}

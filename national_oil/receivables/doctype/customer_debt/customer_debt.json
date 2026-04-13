@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "autoname": "NOF-DBT-.YYYY.-.####",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "dated",
+  "col_break_1",
+  "status",
+  "payable_amount",
+  "amount_paid",
+  "col_break_2",
+  "balance",
+  "section_docs",
+  "receipt",
+  "notes",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "dated",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date Incurred",
+   "reqd": 1
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nPartially Paid\nSettled\nWritten Off",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payable_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "bold": 1,
+   "label": "Payable Amount",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "amount_paid",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount Paid",
+   "read_only": 1
+  },
+  {"fieldname": "col_break_2", "fieldtype": "Column Break"},
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "bold": 1,
+   "label": "Balance",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_docs",
+   "fieldtype": "Section Break",
+   "label": "Documents"
+  },
+  {"fieldname": "receipt", "fieldtype": "Attach", "label": "Receipt"},
+  {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"},
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Customer Debt",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Receivables",
+ "name": "Customer Debt",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Cashier", "read": 1, "create": 1, "submit": 1},
+  {"role": "Accountant", "read": 1, "write": 1, "create": 1, "submit": 1}
+ ],
+ "sort_field": "dated",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

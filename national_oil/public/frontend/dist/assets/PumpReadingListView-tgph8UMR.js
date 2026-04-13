@@ -1,0 +1,1 @@
+import{_ as t,a,c as n,b as s}from"./index-EM2P5tJ3.js";const o={},c={class:"p-6"};function r(i,e){return a(),n("div",c,[...e[0]||(e[0]=[s("h2",{class:"text-2xl font-bold"},"Pump Readings",-1),s("p",{class:"text-gray-400 mt-2"},"Pump reading management coming soon...",-1)])])}const d=t(o,[["render",r]]);export{d as default};

@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "autoname": "NOF-CRD-.YYYY.-.####",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "supplier",
+  "dated",
+  "col_break_1",
+  "status",
+  "source_document_type",
+  "source_document",
+  "section_amounts",
+  "total_amount",
+  "amount_paid",
+  "col_break_2",
+  "balance",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Supplier",
+   "options": "Supplier",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "dated",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nPartially Paid\nSettled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_document_type",
+   "fieldtype": "Select",
+   "label": "Source Document Type",
+   "options": "Fuel Purchase\nInventory Receipt"
+  },
+  {
+   "fieldname": "source_document",
+   "fieldtype": "Dynamic Link",
+   "label": "Source Document",
+   "options": "source_document_type"
+  },
+  {
+   "fieldname": "section_amounts",
+   "fieldtype": "Section Break",
+   "label": "Amounts"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "bold": 1,
+   "label": "Total Amount",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "amount_paid",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount Paid",
+   "read_only": 1
+  },
+  {"fieldname": "col_break_2", "fieldtype": "Column Break"},
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "bold": 1,
+   "label": "Balance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Supplier Credit",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payables",
+ "name": "Supplier Credit",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Accountant", "read": 1, "write": 1, "create": 1, "submit": 1}
+ ],
+ "sort_field": "dated",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

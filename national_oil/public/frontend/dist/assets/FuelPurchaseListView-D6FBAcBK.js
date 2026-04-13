@@ -1,0 +1,1 @@
+import{_ as t,a,c,b as s}from"./index-EM2P5tJ3.js";const o={},n={class:"p-6"};function r(l,e){return a(),c("div",n,[...e[0]||(e[0]=[s("h2",{class:"text-2xl font-bold"},"Fuel Purchases",-1),s("p",{class:"text-gray-400 mt-2"},"Fuel purchase management coming soon...",-1)])])}const _=t(o,[["render",r]]);export{_ as default};

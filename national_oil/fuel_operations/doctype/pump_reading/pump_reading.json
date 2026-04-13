@@ -1,0 +1,109 @@
+{
+ "actions": [],
+ "autoname": "NOF-PMP-.YYYY.-.####",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "dated",
+  "pump_number",
+  "fuel_type",
+  "col_break_1",
+  "opening_reading",
+  "closing_reading",
+  "variance",
+  "section_staff",
+  "attendant",
+  "department",
+  "notes"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "dated",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pump_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Pump Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fuel_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Fuel Type",
+   "options": "Fuel Type",
+   "reqd": 1
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "fieldname": "opening_reading",
+   "fieldtype": "Float",
+   "label": "Opening Reading",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "closing_reading",
+   "fieldtype": "Float",
+   "label": "Closing Reading",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "variance",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Variance (L)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_staff",
+   "fieldtype": "Section Break",
+   "label": "Staff"
+  },
+  {
+   "fieldname": "attendant",
+   "fieldtype": "Link",
+   "label": "Attendant",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Fuel Operations",
+ "name": "Pump Reading",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Pump Attendant", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Accountant", "read": 1}
+ ],
+ "sort_field": "dated",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "pump_number",
+ "track_changes": 0
+}

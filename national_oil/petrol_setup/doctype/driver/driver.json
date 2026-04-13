@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "autoname": "field:driver_name",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "driver_name",
+  "phone",
+  "col_break_1",
+  "email",
+  "car_plate",
+  "section_supplier",
+  "supplier",
+  "supplier_contact"
+ ],
+ "fields": [
+  {
+   "fieldname": "driver_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Driver Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Phone"
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "car_plate",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vehicle Registration"
+  },
+  {
+   "fieldname": "section_supplier",
+   "fieldtype": "Section Break",
+   "label": "Supplier Details"
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Associated Supplier",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "supplier_contact",
+   "fieldtype": "Data",
+   "label": "Supplier Contact Person"
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Petrol Setup",
+ "name": "Driver",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Store Keeper", "read": 1, "write": 1},
+  {"role": "Accountant", "read": 1},
+  {"role": "Driver", "read": 1, "if_owner": 1}
+ ],
+ "search_fields": "driver_name,phone,car_plate",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "driver_name",
+ "track_changes": 0
+}

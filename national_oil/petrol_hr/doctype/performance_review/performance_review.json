@@ -1,0 +1,116 @@
+{
+ "actions": [],
+ "autoname": "NOF-PRF-.YYYY.-.####",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "department",
+  "col_break_1",
+  "period_type",
+  "period_start",
+  "period_end",
+  "section_performance",
+  "target_amount",
+  "hit_amount",
+  "col_break_2",
+  "deviation",
+  "variance_percent",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Department",
+   "options": "Department"
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "fieldname": "period_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Period Type",
+   "options": "Daily\nWeekly\nMonthly",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_start",
+   "fieldtype": "Date",
+   "label": "Period Start",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Date",
+   "label": "Period End"
+  },
+  {
+   "fieldname": "section_performance",
+   "fieldtype": "Section Break",
+   "label": "Performance"
+  },
+  {
+   "fieldname": "target_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Target",
+   "reqd": 1
+  },
+  {
+   "fieldname": "hit_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Hit (Actual)",
+   "reqd": 1
+  },
+  {"fieldname": "col_break_2", "fieldtype": "Column Break"},
+  {
+   "fieldname": "deviation",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Deviation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "variance_percent",
+   "fieldtype": "Percent",
+   "label": "Variance %",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Petrol HR",
+ "name": "Performance Review",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "HR Officer", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Accountant", "read": 1}
+ ],
+ "sort_field": "period_start",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

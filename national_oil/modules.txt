@@ -1,1 +1,9 @@
-National oil
+Petrol Setup
+Fuel Operations
+Inventory
+Sales
+Receivables
+Payables
+Finance
+Petrol HR
+MPesa

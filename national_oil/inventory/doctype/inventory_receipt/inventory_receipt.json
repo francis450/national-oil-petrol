@@ -1,0 +1,196 @@
+{
+ "actions": [],
+ "autoname": "NOF-INV-.YYYY.-.####",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "code",
+  "dated",
+  "supplier",
+  "brand",
+  "section_quantities",
+  "unit_of_measure",
+  "units",
+  "subunits_per_unit",
+  "col_break_1",
+  "unit_cost",
+  "subunit_cost",
+  "total_cost",
+  "section_payment",
+  "amount_paid",
+  "balance",
+  "col_break_2",
+  "payment_method",
+  "section_pricing",
+  "product",
+  "retail_price",
+  "col_break_3",
+  "wholesale_price",
+  "section_docs",
+  "receipt",
+  "comments",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Receipt Reference",
+   "no_copy": 1,
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "dated",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Supplier",
+   "options": "Supplier",
+   "reqd": 1
+  },
+  {
+   "fieldname": "brand",
+   "fieldtype": "Link",
+   "label": "Brand",
+   "options": "Brand"
+  },
+  {
+   "fieldname": "section_quantities",
+   "fieldtype": "Section Break",
+   "label": "Quantities"
+  },
+  {
+   "fieldname": "unit_of_measure",
+   "fieldtype": "Select",
+   "label": "Unit of Measure",
+   "options": "Pieces\nLitres\nKg\nBoxes\nCartons",
+   "reqd": 1
+  },
+  {
+   "fieldname": "units",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Units Received",
+   "reqd": 1
+  },
+  {
+   "fieldname": "subunits_per_unit",
+   "fieldtype": "Int",
+   "label": "Sub-Units Per Unit"
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "fieldname": "unit_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Unit Cost",
+   "reqd": 1
+  },
+  {
+   "fieldname": "subunit_cost",
+   "fieldtype": "Currency",
+   "label": "Sub-Unit Cost",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "bold": 1,
+   "label": "Total Cost",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_payment",
+   "fieldtype": "Section Break",
+   "label": "Payment"
+  },
+  {
+   "default": "0",
+   "fieldname": "amount_paid",
+   "fieldtype": "Currency",
+   "label": "Amount Paid"
+  },
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Balance",
+   "read_only": 1
+  },
+  {"fieldname": "col_break_2", "fieldtype": "Column Break"},
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "options": "Cash\nCheque\nM-Pesa\nBank Transfer\nCredit"
+  },
+  {
+   "fieldname": "section_pricing",
+   "fieldtype": "Section Break",
+   "label": "Product & Pricing"
+  },
+  {
+   "fieldname": "product",
+   "fieldtype": "Link",
+   "label": "Product",
+   "options": "Product"
+  },
+  {
+   "fieldname": "retail_price",
+   "fieldtype": "Currency",
+   "label": "Retail Price"
+  },
+  {"fieldname": "col_break_3", "fieldtype": "Column Break"},
+  {
+   "fieldname": "wholesale_price",
+   "fieldtype": "Currency",
+   "label": "Wholesale Price"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_docs",
+   "fieldtype": "Section Break",
+   "label": "Documents"
+  },
+  {"fieldname": "receipt", "fieldtype": "Attach", "label": "Receipt"},
+  {"fieldname": "comments", "fieldtype": "Small Text", "label": "Comments"},
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Inventory Receipt",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Inventory",
+ "name": "Inventory Receipt",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Store Keeper", "read": 1, "write": 1, "create": 1, "submit": 1},
+  {"role": "Accountant", "read": 1}
+ ],
+ "sort_field": "dated",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

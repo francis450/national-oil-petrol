@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-chronos-black text-white;
+}
+
+.card {
+  @apply bg-gray-900 rounded-lg border border-gray-800 p-4;
+}
+
+.btn-primary {
+  @apply bg-deepseek-blue hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition;
+}
+
+.btn-success {
+  @apply bg-bioluminescent-green hover:bg-green-500 text-black font-semibold py-2 px-4 rounded-lg transition;
+}
+
+.btn-danger {
+  @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition;
+}
+
+.input-field {
+  @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400;
+}

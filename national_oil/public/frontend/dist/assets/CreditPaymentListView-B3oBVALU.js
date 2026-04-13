@@ -1,0 +1,1 @@
+import{_ as s,a,c as n,b as t}from"./index-CPLtKH5G.js";const o={},r={class:"p-6"};function c(i,e){return a(),n("div",r,[...e[0]||(e[0]=[t("h2",{class:"text-2xl font-bold"},"Credit Payments",-1),t("p",{class:"text-gray-400 mt-2"},"Credit payment management coming soon...",-1)])])}const d=s(o,[["render",c]]);export{d as default};

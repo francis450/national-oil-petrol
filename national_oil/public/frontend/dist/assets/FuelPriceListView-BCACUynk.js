@@ -1,0 +1,1 @@
+import{_ as t,a as c,c as o,b as s}from"./index-CPLtKH5G.js";const a={},n={class:"p-6"};function r(l,e){return c(),o("div",n,[...e[0]||(e[0]=[s("h2",{class:"text-2xl font-bold"},"Fuel Prices",-1),s("p",{class:"text-gray-400 mt-2"},"Fuel price management coming soon...",-1)])])}const _=t(a,[["render",r]]);export{_ as default};

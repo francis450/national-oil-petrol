@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "autoname": "field:account_name",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "account_name",
+  "balance",
+  "col_break_1",
+  "department",
+  "last_replenished"
+ ],
+ "fields": [
+  {
+   "fieldname": "account_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Current Balance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "last_replenished",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Last Replenished",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Finance",
+ "name": "Petty Cash Account",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Accountant", "read": 1, "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "account_name",
+ "track_changes": 0
+}

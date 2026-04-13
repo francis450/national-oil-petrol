@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "fuel_type",
+  "effective_date",
+  "section_prices",
+  "buying_price",
+  "selling_price_retail",
+  "col_break_1",
+  "selling_price_wholesale",
+  "set_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "fuel_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Fuel Type",
+   "options": "Fuel Type",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "effective_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Effective Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_prices",
+   "fieldtype": "Section Break",
+   "label": "Prices"
+  },
+  {
+   "fieldname": "buying_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Buying Price (per Litre)",
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "selling_price_retail",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Retail Selling Price",
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "selling_price_wholesale",
+   "fieldtype": "Currency",
+   "label": "Wholesale Price",
+   "precision": "4"
+  },
+  {
+   "fieldname": "set_by",
+   "fieldtype": "Link",
+   "label": "Set By",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Fuel Operations",
+ "name": "Fuel Price",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Accountant", "read": 1}
+ ],
+ "sort_field": "effective_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "fuel_type",
+ "track_changes": 0
+}

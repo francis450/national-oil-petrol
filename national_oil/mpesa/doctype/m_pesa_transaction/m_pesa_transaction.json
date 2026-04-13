@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "autoname": "NOF-MPT-.YYYY.-.####",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "transaction_type",
+  "customer",
+  "dated",
+  "col_break_1",
+  "status",
+  "amount",
+  "phone_number",
+  "section_mpesa",
+  "checkout_request_id",
+  "merchant_request_id",
+  "col_break_2",
+  "mpesa_receipt_number",
+  "result_description",
+  "section_link",
+  "customer_debt",
+  "raw_response"
+ ],
+ "fields": [
+  {
+   "default": "STK Push",
+   "fieldname": "transaction_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Transaction Type",
+   "options": "STK Push\nC2B"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "default": "Today",
+   "fieldname": "dated",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date"
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nConfirmed\nFailed\nCancelled"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount"
+  },
+  {
+   "fieldname": "phone_number",
+   "fieldtype": "Data",
+   "label": "Phone Number"
+  },
+  {
+   "fieldname": "section_mpesa",
+   "fieldtype": "Section Break",
+   "label": "M-Pesa Reference"
+  },
+  {
+   "fieldname": "checkout_request_id",
+   "fieldtype": "Data",
+   "label": "Checkout Request ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "merchant_request_id",
+   "fieldtype": "Data",
+   "label": "Merchant Request ID",
+   "read_only": 1
+  },
+  {"fieldname": "col_break_2", "fieldtype": "Column Break"},
+  {
+   "fieldname": "mpesa_receipt_number",
+   "fieldtype": "Data",
+   "label": "M-Pesa Receipt Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "result_description",
+   "fieldtype": "Small Text",
+   "label": "Result Description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_link",
+   "fieldtype": "Section Break",
+   "label": "Linked Document"
+  },
+  {
+   "fieldname": "customer_debt",
+   "fieldtype": "Link",
+   "label": "Customer Debt",
+   "options": "Customer Debt"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "raw_response",
+   "fieldtype": "Code",
+   "label": "Raw Response",
+   "options": "JSON",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "MPesa",
+ "name": "M-Pesa Transaction",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1, "create": 1, "delete": 1},
+  {"role": "Cashier", "read": 1},
+  {"role": "Accountant", "read": 1}
+ ],
+ "sort_field": "dated",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

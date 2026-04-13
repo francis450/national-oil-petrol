@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "autoname": "NOF-SAL-.YYYY.-.####",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "dated",
+  "department",
+  "col_break_1",
+  "sale_type",
+  "amount",
+  "section_payment",
+  "payment_method",
+  "customer",
+  "col_break_2",
+  "notes",
+  "section_items",
+  "items",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "dated",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Department",
+   "options": "Department",
+   "reqd": 1
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "fieldname": "sale_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Sale Type",
+   "options": "Wet Stock\nOther",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "bold": 1,
+   "label": "Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_payment",
+   "fieldtype": "Section Break",
+   "label": "Payment"
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Payment Method",
+   "options": "Cash\nM-Pesa\nCheque\nBank Transfer\nCredit"
+  },
+  {
+   "depends_on": "eval:doc.payment_method=='Credit'",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {"fieldname": "col_break_2", "fieldtype": "Column Break"},
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "Line Items (optional)"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Sales Item"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Sales Entry",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Sales",
+ "name": "Sales Entry",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Pump Attendant", "read": 1, "write": 1, "create": 1, "submit": 1},
+  {"role": "Cashier", "read": 1, "write": 1, "create": 1, "submit": 1},
+  {"role": "Accountant", "read": 1}
+ ],
+ "sort_field": "dated",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

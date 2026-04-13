@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "environment",
+  "business_shortcode",
+  "col_break_1",
+  "consumer_key",
+  "consumer_secret",
+  "section_stk",
+  "passkey",
+  "callback_url",
+  "col_break_2",
+  "b2c_initiator_name",
+  "b2c_security_credential"
+ ],
+ "fields": [
+  {
+   "default": "Sandbox",
+   "fieldname": "environment",
+   "fieldtype": "Select",
+   "label": "Environment",
+   "options": "Sandbox\nProduction",
+   "reqd": 1
+  },
+  {
+   "fieldname": "business_shortcode",
+   "fieldtype": "Data",
+   "label": "Business Shortcode",
+   "reqd": 1
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "fieldname": "consumer_key",
+   "fieldtype": "Data",
+   "label": "Consumer Key",
+   "reqd": 1
+  },
+  {
+   "fieldname": "consumer_secret",
+   "fieldtype": "Password",
+   "label": "Consumer Secret",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_stk",
+   "fieldtype": "Section Break",
+   "label": "STK Push / C2B"
+  },
+  {
+   "fieldname": "passkey",
+   "fieldtype": "Password",
+   "label": "Passkey",
+   "reqd": 1
+  },
+  {
+   "fieldname": "callback_url",
+   "fieldtype": "Data",
+   "label": "Callback URL"
+  },
+  {"fieldname": "col_break_2", "fieldtype": "Column Break"},
+  {
+   "fieldname": "b2c_initiator_name",
+   "fieldtype": "Data",
+   "label": "B2C Initiator Name"
+  },
+  {
+   "fieldname": "b2c_security_credential",
+   "fieldtype": "Password",
+   "label": "B2C Security Credential"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "MPesa",
+ "name": "M-Pesa Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}
