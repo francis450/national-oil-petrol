@@ -57,6 +57,7 @@ ALLOWED_COMMERCE_DOCTYPES = {
 		"label_field_candidates": ["party_name", "party", "name"],
 		"fields": [
 			"name",
+			"docstatus",
 			"payment_type",
 			"party_type",
 			"party",
@@ -109,6 +110,9 @@ def list_commerce_records(
 	doctype,
 	txt=None,
 	party=None,
+	party_type=None,
+	payment_type=None,
+	mode_of_payment=None,
 	company=None,
 	status=None,
 	date_from=None,
@@ -127,6 +131,12 @@ def list_commerce_records(
 		filters["company"] = company
 	if status and "status" in config["fields"]:
 		filters["status"] = status
+	if party_type and "party_type" in config["fields"]:
+		filters["party_type"] = party_type
+	if payment_type and "payment_type" in config["fields"]:
+		filters["payment_type"] = payment_type
+	if mode_of_payment and "mode_of_payment" in config["fields"]:
+		filters["mode_of_payment"] = mode_of_payment
 
 	if party:
 		if doctype in {"Purchase Receipt", "Purchase Invoice"} and "supplier" in config["fields"]:

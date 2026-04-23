@@ -17,6 +17,23 @@ export interface CommerceInvoiceRow {
   label?: string
 }
 
+export interface PaymentEntryRow {
+  name: string
+  docstatus?: number
+  payment_type: 'Pay' | 'Receive'
+  party_type?: 'Customer' | 'Supplier'
+  party?: string
+  party_name?: string
+  posting_date: string
+  company?: string
+  paid_amount?: number
+  received_amount?: number
+  mode_of_payment?: string
+  status?: string
+  doctype: 'Payment Entry'
+  label?: string
+}
+
 export interface PaymentEntryResult {
   target_doctype: 'Payment Entry'
   name: string
@@ -28,14 +45,18 @@ export interface PaymentEntryResult {
 interface ListCommerceResponse {
   doctype: string
   count: number
-  records: CommerceInvoiceRow[]
+  records: Array<CommerceInvoiceRow | PaymentEntryRow>
 }
 
-const listCommerceRecords = async (doctype: 'Sales Invoice' | 'Purchase Invoice') => {
+const listCommerceRecords = async (
+  doctype: 'Sales Invoice' | 'Purchase Invoice' | 'Payment Entry',
+  params: Record<string, any> = {},
+) => {
   const response = await apiClient.get('/api/method/national_oil.api.commerce.list_commerce_records', {
     params: {
       doctype,
       limit_page_length: 50,
+      ...params,
     },
   })
 
@@ -44,11 +65,25 @@ const listCommerceRecords = async (doctype: 'Sales Invoice' | 'Purchase Invoice'
 
 export const commerceApi = {
   async listReceivableInvoices() {
-    return listCommerceRecords('Sales Invoice')
+    return (await listCommerceRecords('Sales Invoice')) as CommerceInvoiceRow[]
   },
 
   async listPayableInvoices() {
-    return listCommerceRecords('Purchase Invoice')
+    return (await listCommerceRecords('Purchase Invoice')) as CommerceInvoiceRow[]
+  },
+
+  async listReceivablePayments() {
+    return (await listCommerceRecords('Payment Entry', {
+      payment_type: 'Receive',
+      party_type: 'Customer',
+    })) as PaymentEntryRow[]
+  },
+
+  async listPayablePayments() {
+    return (await listCommerceRecords('Payment Entry', {
+      payment_type: 'Pay',
+      party_type: 'Supplier',
+    })) as PaymentEntryRow[]
   },
 
   async createPaymentEntry(
