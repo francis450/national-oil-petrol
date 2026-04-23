@@ -68,7 +68,7 @@ const getPageTitle = () => {
   const titles: Record<string, string> = {
     '/': 'Dashboard',
     '/fuel/purchases': 'Fuel Purchases',
-    '/fuelprices': 'Fuel Prices',
+    '/fuel/prices': 'Fuel Prices',
     '/fuel/readings': 'Pump Readings',
     '/sales/entries': 'Sales Entries',
     '/sales/targets': 'Sales Targets',
