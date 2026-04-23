@@ -1,5 +1,6 @@
 import frappe
 from frappe.utils import cint, flt
+from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 
 
 OPERATIONAL_MAPPING_BUNDLE = {
@@ -21,7 +22,7 @@ PAYMENT_MODE_MAP = {
 	"Cash": "Cash",
 	"M-Pesa": "M-Pesa",
 	"Cheque": "Cheque",
-	"Bank Transfer": "Bank Transfer",
+	"Bank Transfer": "Wire Transfer",
 	"Credit": None,
 }
 
@@ -63,6 +64,18 @@ def _find_item_code(*values):
 
 def _payment_mode(payment_method):
 	return PAYMENT_MODE_MAP.get(payment_method)
+
+
+def _resolve_mode_of_payment(company, payment_method=None, mode_of_payment=None):
+	candidate = mode_of_payment or _payment_mode(payment_method)
+	if not candidate:
+		return None, None
+	if not frappe.db.exists("Mode of Payment", candidate):
+		return candidate, None
+	account = frappe.db.get_value(
+		"Mode of Payment Account", {"parent": candidate, "company": company}, "default_account"
+	)
+	return candidate, account
 
 
 def _get_default_company():
@@ -568,4 +581,58 @@ def create_erpnext_target_from_operational(
 		"target_doctype": target_doctype,
 		"name": target_doc.name,
 		"docstatus": target_doc.docstatus,
+	}
+
+
+@frappe.whitelist()
+def create_payment_entry_for_reference(
+	reference_doctype,
+	reference_name,
+	mode_of_payment=None,
+	payment_method=None,
+	posting_date=None,
+	submit=0,
+):
+	"""Create a draft or submitted Payment Entry from an ERPNext source document."""
+	submit = cint(submit)
+	source_doc = frappe.get_doc(reference_doctype, reference_name)
+	if source_doc.docstatus != 1:
+		frappe.throw(
+			frappe._("{0} {1} must be submitted before creating a Payment Entry.").format(
+				reference_doctype, reference_name
+			)
+		)
+	company = source_doc.get("company")
+
+	resolved_mode, bank_account = _resolve_mode_of_payment(
+		company, payment_method=payment_method, mode_of_payment=mode_of_payment
+	)
+
+	if not bank_account:
+		frappe.throw(
+			frappe._(
+				"No Mode of Payment Account is configured for the selected payment mode and company."
+			)
+		)
+
+	pe = get_payment_entry(
+		reference_doctype,
+		reference_name,
+		bank_account=bank_account,
+		reference_date=posting_date or source_doc.get("posting_date"),
+		ignore_permissions=True,
+	)
+	pe.mode_of_payment = resolved_mode
+	if posting_date:
+		pe.posting_date = posting_date
+	pe.insert(ignore_permissions=True)
+	if submit:
+		pe.submit()
+
+	return {
+		"target_doctype": "Payment Entry",
+		"name": pe.name,
+		"docstatus": pe.docstatus,
+		"reference_doctype": reference_doctype,
+		"reference_name": reference_name,
 	}
