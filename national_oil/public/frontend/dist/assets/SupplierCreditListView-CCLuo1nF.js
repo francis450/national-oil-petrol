@@ -1,1 +1,0 @@
-import{_ as s,a as r,c as o,b as t}from"./index-CPLtKH5G.js";const a={},c={class:"p-6"};function n(i,e){return r(),o("div",c,[...e[0]||(e[0]=[t("h2",{class:"text-2xl font-bold"},"Supplier Credits",-1),t("p",{class:"text-gray-400 mt-2"},"Supplier credit management coming soon...",-1)])])}const p=s(a,[["render",n]]);export{p as default};

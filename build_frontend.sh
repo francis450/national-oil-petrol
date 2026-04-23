@@ -4,25 +4,20 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FRONTEND_DIR="$SCRIPT_DIR/frontend"
 WWW_DIR="$SCRIPT_DIR/national_oil/www"
-PUBLIC_DIR="$SCRIPT_DIR/national_oil/public/frontend"
+PUBLIC_DIST_DIR="$SCRIPT_DIR/national_oil/public/frontend/dist"
 
 echo "Building National Oil frontend..."
+rm -rf "$PUBLIC_DIST_DIR"
 cd "$FRONTEND_DIR" && npm run build
 
 if [ $? -eq 0 ]; then
-    echo "Build successful! Copying assets to public folder..."
-    
-    # Create public/frontend/dist directory if it doesn't exist
-    mkdir -p "$PUBLIC_DIR/dist/assets"
-    
-    # Copy built files to public folder for Frappe to serve
-    cp -r "$FRONTEND_DIR/dist/"* "$PUBLIC_DIR/dist/" 2>/dev/null || true
+    echo "Build successful! Frontend assets written to public dist."
     
     echo "Updating petrol.html..."
     
-    # Get the actual asset filenames from dist
-    JS_FILE=$(ls "$FRONTEND_DIR/dist/assets/"index-*.js 2>/dev/null | head -1 | xargs -n1 basename)
-    CSS_FILE=$(ls "$FRONTEND_DIR/dist/assets/"index-*.css 2>/dev/null | head -1 | xargs -n1 basename)
+    # Get the actual asset filenames from served public dist
+    JS_FILE=$(find "$PUBLIC_DIST_DIR/assets" -maxdepth 1 -name 'index-*.js' -print | head -1 | xargs -n1 basename)
+    CSS_FILE=$(find "$PUBLIC_DIST_DIR/assets" -maxdepth 1 -name 'index-*.css' -print | head -1 | xargs -n1 basename)
     
     if [ -z "$JS_FILE" ] || [ -z "$CSS_FILE" ]; then
         echo "✗ Could not find built assets!"
@@ -74,10 +69,9 @@ HTMLEOF
 HTMLEOF
     
     echo "✓ petrol.html updated successfully!"
-    echo "✓ Assets copied to: $PUBLIC_DIR/dist/"
+    echo "✓ Assets available at: $PUBLIC_DIST_DIR/"
     echo "Run 'bench clear-cache && bench restart' to apply changes."
 else
     echo "✗ Build failed!"
     exit 1
 fi
-

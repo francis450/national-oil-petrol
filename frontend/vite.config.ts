@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 
+const servedDistDir = resolve(__dirname, '../national_oil/public/frontend/dist')
+
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -28,7 +30,8 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    outDir: 'dist',
+    outDir: servedDistDir,
+    emptyOutDir: true,
     sourcemap: false,
   },
 })
