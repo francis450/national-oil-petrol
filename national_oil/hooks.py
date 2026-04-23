@@ -41,10 +41,6 @@ doc_events = {
         "on_submit": "national_oil.inventory.doctype.inventory_receipt.inventory_receipt.InventoryReceipt.on_submit",
         "on_cancel": "national_oil.inventory.doctype.inventory_receipt.inventory_receipt.InventoryReceipt.on_cancel",
     },
-    "Petty Cash Entry": {
-        "on_submit": "national_oil.finance.doctype.petty_cash_entry.petty_cash_entry.PettyCashEntry.on_submit",
-        "on_cancel": "national_oil.finance.doctype.petty_cash_entry.petty_cash_entry.PettyCashEntry.on_cancel",
-    },
 }
 
 # Scheduled Tasks

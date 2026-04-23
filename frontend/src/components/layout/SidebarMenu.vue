@@ -103,21 +103,21 @@
       </router-link>
     </SidebarMenuGroup>
 
-    <!-- Finance -->
-    <router-link
-      to="/finance"
-      :class="[
-        'group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-        isActive('/finance') 
-          ? 'bg-deepseek-blue bg-opacity-20 text-deepseek-blue border-l-4 border-deepseek-blue' 
-          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-300'
-      ]"
+    <!-- Finance (Collapsible) -->
+    <SidebarMenuGroup 
+      :label="'Finance'" 
+      :expanded="expandedGroups.finance"
+      @toggle="toggleGroup('finance')"
     >
-      <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-      </svg>
-      Finance
-    </router-link>
+      <router-link to="/finance/accounts" class="menu-subitem">
+        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
+        Petty Cash Accounts
+      </router-link>
+      <router-link to="/finance/entries" class="menu-subitem">
+        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
+        Petty Cash Entries
+      </router-link>
+    </SidebarMenuGroup>
 
     <!-- HR (Collapsible) -->
     <SidebarMenuGroup 
@@ -170,6 +170,7 @@ const expandedGroups = ref({
   receivables: false,
   payables: false,
   inventory: false,
+  finance: false,
   hr: false,
 })
 

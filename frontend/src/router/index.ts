@@ -134,6 +134,25 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: '/finance',
+    name: 'Finance',
+    component: () => import('@/views/finance/FinanceLayout.vue'),
+    meta: { requiresAuth: true, layout: 'app' },
+    redirect: '/finance/accounts',
+    children: [
+      {
+        path: 'accounts',
+        name: 'PettyCashAccounts',
+        component: () => import('@/views/finance/PettyCashAccountListView.vue'),
+      },
+      {
+        path: 'entries',
+        name: 'PettyCashEntries',
+        component: () => import('@/views/finance/PettyCashEntryListView.vue'),
+      },
+    ],
+  },
 ]
 
 const router = createRouter({

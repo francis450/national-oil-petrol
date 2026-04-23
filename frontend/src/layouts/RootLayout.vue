@@ -78,6 +78,8 @@ const getPageTitle = () => {
     '/payables/payments': 'Credit Payments',
     '/inventory/receipts': 'Inventory Receipts',
     '/inventory/products': 'Products',
+    '/finance/accounts': 'Petty Cash Accounts',
+    '/finance/entries': 'Petty Cash Entries',
     '/hr/employees': 'Employees',
     '/hr/attendance': 'Attendance',
     '/hr/leave': 'Leave Applications',
