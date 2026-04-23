@@ -119,21 +119,25 @@
       Finance
     </router-link>
 
-    <!-- HR -->
-    <router-link
-      to="/hr"
-      :class="[
-        'group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-        isActive('/hr') 
-          ? 'bg-deepseek-blue bg-opacity-20 text-deepseek-blue border-l-4 border-deepseek-blue' 
-          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-300'
-      ]"
+    <!-- HR (Collapsible) -->
+    <SidebarMenuGroup 
+      :label="'Human Resources'" 
+      :expanded="expandedGroups.hr"
+      @toggle="toggleGroup('hr')"
     >
-      <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v2h8v-2zM16 11a2 2 0 100-4 2 2 0 000 4zM20 13a2 2 0 100-4 2 2 0 000 4z" />
-      </svg>
-      Human Resources
-    </router-link>
+      <router-link to="/hr/employees" class="menu-subitem">
+        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
+        Employees
+      </router-link>
+      <router-link to="/hr/attendance" class="menu-subitem">
+        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
+        Attendance
+      </router-link>
+      <router-link to="/hr/leave" class="menu-subitem">
+        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
+        Leave Applications
+      </router-link>
+    </SidebarMenuGroup>
 
     <!-- Reports -->
     <router-link
@@ -166,6 +170,7 @@ const expandedGroups = ref({
   receivables: false,
   payables: false,
   inventory: false,
+  hr: false,
 })
 
 const toggleGroup = (group: keyof typeof expandedGroups.value) => {

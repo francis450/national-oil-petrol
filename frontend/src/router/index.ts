@@ -110,6 +110,30 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: '/hr',
+    name: 'HR',
+    component: () => import('@/views/hr/HrLayout.vue'),
+    meta: { requiresAuth: true, layout: 'app' },
+    redirect: '/hr/employees',
+    children: [
+      {
+        path: 'employees',
+        name: 'Employees',
+        component: () => import('@/views/hr/EmployeeListView.vue'),
+      },
+      {
+        path: 'attendance',
+        name: 'Attendance',
+        component: () => import('@/views/hr/AttendanceListView.vue'),
+      },
+      {
+        path: 'leave',
+        name: 'LeaveApplications',
+        component: () => import('@/views/hr/LeaveApplicationListView.vue'),
+      },
+    ],
+  },
 ]
 
 const router = createRouter({
