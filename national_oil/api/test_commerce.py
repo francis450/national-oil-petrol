@@ -13,6 +13,9 @@ class TestCommerceApi(FrappeTestCase):
 			list_commerce_records("Product")
 
 	def test_lists_item_records_from_erpnext_item_master(self):
+		if not frappe.db.exists("DocType", "Item"):
+			self.skipTest("Item DocType is not installed on this site.")
+
 		item_code = "NO-TEST-ITEM-API"
 		item_group = frappe.db.get_value("Item Group", {"is_group": 0}, "name")
 		stock_uom = frappe.db.get_value("UOM", "Nos", "name") or frappe.db.get_value("UOM", {}, "name")
@@ -39,8 +42,8 @@ class TestCommerceApi(FrappeTestCase):
 		result = get_commerce_lookup_bundle()
 		doctypes = {row["doctype"] for row in result}
 
-		self.assertIn("Item", doctypes)
-		self.assertIn("Purchase Receipt", doctypes)
-		self.assertIn("Purchase Invoice", doctypes)
-		self.assertIn("Sales Invoice", doctypes)
-		self.assertIn("Payment Entry", doctypes)
+		for doctype in ["Item", "Purchase Receipt", "Purchase Invoice", "Sales Invoice", "Payment Entry"]:
+			if frappe.db.exists("DocType", doctype):
+				self.assertIn(doctype, doctypes)
+			else:
+				self.assertNotIn(doctype, doctypes)

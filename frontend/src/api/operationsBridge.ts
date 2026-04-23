@@ -15,6 +15,17 @@ export interface FuelPurchaseRow {
   docstatus: number
 }
 
+export interface SalesEntryRow {
+  name: string
+  dated: string
+  department: string
+  sale_type: string
+  amount: number
+  payment_method?: string
+  customer?: string
+  docstatus: number
+}
+
 export interface BridgeTarget {
   target_doctype: string
   recommended: boolean
@@ -43,6 +54,17 @@ const fuelPurchaseFields = [
   'docstatus',
 ]
 
+const salesEntryFields = [
+  'name',
+  'dated',
+  'department',
+  'sale_type',
+  'amount',
+  'payment_method',
+  'customer',
+  'docstatus',
+]
+
 export const operationsBridgeApi = {
   async listFuelPurchases() {
     const response = await apiClient.get('/api/resource/Fuel Purchase', {
@@ -68,6 +90,36 @@ export const operationsBridgeApi = {
   async createFuelPurchaseTarget(name: string, targetDoctype: 'Purchase Receipt' | 'Purchase Invoice') {
     const response = await apiClient.post('/api/method/national_oil.api.operations_bridge.create_erpnext_target_from_operational', {
       source_doctype: 'Fuel Purchase',
+      target_doctype: targetDoctype,
+      docname: name,
+    })
+    return response.data.message as { target_doctype: string; name: string; docstatus: number }
+  },
+
+  async listSalesEntries() {
+    const response = await apiClient.get('/api/resource/Sales Entry', {
+      params: {
+        fields: JSON.stringify(salesEntryFields),
+        limit_page_length: 50,
+        order_by: 'dated desc',
+      },
+    })
+    return response.data.data as SalesEntryRow[]
+  },
+
+  async previewSalesEntryMapping(name: string) {
+    const response = await apiClient.get('/api/method/national_oil.api.operations_bridge.preview_erpnext_mapping', {
+      params: {
+        source_doctype: 'Sales Entry',
+        docname: name,
+      },
+    })
+    return response.data.message as BridgePreview
+  },
+
+  async createSalesEntryTarget(name: string, targetDoctype: 'Sales Invoice') {
+    const response = await apiClient.post('/api/method/national_oil.api.operations_bridge.create_erpnext_target_from_operational', {
+      source_doctype: 'Sales Entry',
       target_doctype: targetDoctype,
       docname: name,
     })
