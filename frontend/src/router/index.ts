@@ -153,6 +153,20 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: '/reports',
+    name: 'Reports',
+    component: () => import('@/views/reports/ReportsLayout.vue'),
+    meta: { requiresAuth: true, layout: 'app' },
+    redirect: '/reports/daily-sales-summary',
+    children: [
+      {
+        path: ':reportSlug',
+        name: 'ReportView',
+        component: () => import('@/views/reports/ReportView.vue'),
+      },
+    ],
+  },
 ]
 
 const router = createRouter({

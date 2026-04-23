@@ -1,0 +1,28 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2026-04-23 00:00:00.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-04-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Petrol HR",
+ "name": "Leave Register",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT\n  lr.name AS `Reference`,\n  lr.employee AS `Employee`,\n  lr.leave_type AS `Leave Type`,\n  lr.from_date AS `From Date`,\n  lr.to_date AS `To Date`,\n  lr.total_days AS `Total Days`,\n  lr.status AS `Status`\nFROM `tabLeave Request` lr\nWHERE lr.docstatus < 2\n  AND (%(employee)s IS NULL OR %(employee)s = '' OR lr.employee = %(employee)s)\n  AND (%(status)s IS NULL OR %(status)s = '' OR lr.status = %(status)s)\n  AND (%(year)s IS NULL OR %(year)s = '' OR YEAR(lr.from_date) = %(year)s)\nORDER BY lr.from_date DESC",
+ "ref_doctype": "Leave Request",
+ "report_name": "Leave Register",
+ "report_type": "Query Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "Station Manager"},
+  {"role": "HR Officer"},
+  {"role": "Accountant"}
+ ]
+}

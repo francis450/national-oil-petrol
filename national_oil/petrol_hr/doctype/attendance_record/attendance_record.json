@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "autoname": "NOF-ATT-.YYYY.-.####",
+ "creation": "2026-04-23 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "dated",
+  "status",
+  "col_break_1",
+  "overtime_hours",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "NO Employee",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "dated",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "default": "Present",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Present\nAbsent\nLate\nHalf Day",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "overtime_hours",
+   "fieldtype": "Float",
+   "label": "Overtime Hours",
+   "precision": "1"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Petrol HR",
+ "name": "Attendance Record",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "HR Officer", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Accountant", "read": 1}
+ ],
+ "sort_field": "dated",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

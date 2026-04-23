@@ -1,8 +1,16 @@
 <template>
   <div class="space-y-6">
-    <div>
-      <h1 class="text-3xl font-bold text-white mb-1">Sales Entries</h1>
-      <p class="text-gray-400">Operational sales capture with ERPNext invoice bridge actions.</p>
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-1">Sales Entries</h1>
+        <p class="text-gray-400">Operational sales capture with ERPNext invoice bridge actions.</p>
+      </div>
+      <button
+        @click="openCreate"
+        class="px-4 py-2 bg-deepseek-blue text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shrink-0"
+      >
+        + New Entry
+      </button>
     </div>
 
     <div v-if="pageError" class="p-4 rounded-lg border border-red-800 bg-red-900 bg-opacity-20 text-red-200 text-sm">
@@ -174,16 +182,115 @@
         </div>
       </aside>
     </div>
+
+    <SlideOver v-model="showForm" title="New Sales Entry">
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Date <span class="text-red-400">*</span></label>
+            <input
+              v-model="form.dated"
+              type="date"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Department <span class="text-red-400">*</span></label>
+            <input
+              v-model="form.department"
+              type="text"
+              placeholder="e.g. Forecourt"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Sale Type <span class="text-red-400">*</span></label>
+          <select
+            v-model="form.sale_type"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+          >
+            <option value="">— Select type —</option>
+            <option>Wet Stock</option>
+            <option>Other Sale</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Amount (KSh) <span class="text-red-400">*</span></label>
+          <input
+            v-model.number="form.amount"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Payment Method</label>
+          <select
+            v-model="form.payment_method"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+          >
+            <option value="">— Select method —</option>
+            <option>Cash</option>
+            <option>M-Pesa</option>
+            <option>Cheque</option>
+            <option>Bank Transfer</option>
+            <option>Credit</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Customer</label>
+          <input
+            v-model="form.customer"
+            type="text"
+            placeholder="Customer ID (optional)"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Notes</label>
+          <textarea
+            v-model="form.notes"
+            rows="2"
+            placeholder="Optional notes"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none"
+          ></textarea>
+        </div>
+        <div
+          v-if="createError"
+          class="p-3 rounded-lg border border-red-800 bg-red-900/20 text-red-200 text-xs"
+        >{{ createError }}</div>
+      </div>
+      <template #footer>
+        <button
+          @click="showForm = false"
+          class="px-4 py-2 text-sm text-gray-300 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          @click="saveForm"
+          :disabled="creating"
+          class="px-4 py-2 text-sm text-white bg-deepseek-blue rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors"
+        >
+          {{ creating ? 'Saving...' : 'Create Entry' }}
+        </button>
+      </template>
+    </SlideOver>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import {
   operationsBridgeApi,
   type BridgePreview,
   type SalesEntryRow,
 } from '@/api/operationsBridge'
+import SlideOver from '@/components/common/SlideOver.vue'
+import { apiClient } from '@/api/client'
 
 const salesEntries = ref<SalesEntryRow[]>([])
 const loading = ref(false)
@@ -251,6 +358,64 @@ const createInvoice = async (row: SalesEntryRow) => {
     previewError.value = error?.response?.data?.message || error?.message || 'Failed to create Sales Invoice.'
   } finally {
     creatingInvoiceFor.value = ''
+  }
+}
+
+const showForm = ref(false)
+const creating = ref(false)
+const createError = ref('')
+const form = reactive({
+  dated: '',
+  department: '',
+  sale_type: '',
+  amount: 0,
+  payment_method: '',
+  customer: '',
+  notes: '',
+})
+
+const openCreate = () => {
+  form.dated = new Date().toISOString().split('T')[0]
+  form.department = ''
+  form.sale_type = ''
+  form.amount = 0
+  form.payment_method = ''
+  form.customer = ''
+  form.notes = ''
+  createError.value = ''
+  showForm.value = true
+}
+
+const saveForm = async () => {
+  if (!form.dated || !form.department.trim() || !form.sale_type || !form.amount) {
+    createError.value = 'Date, department, sale type, and amount are required.'
+    return
+  }
+  creating.value = true
+  createError.value = ''
+  try {
+    const payload: Record<string, any> = {
+      dated: form.dated,
+      department: form.department.trim(),
+      sale_type: form.sale_type,
+      amount: form.amount,
+    }
+    if (form.payment_method) payload.payment_method = form.payment_method
+    if (form.customer.trim()) payload.customer = form.customer.trim()
+    if (form.notes.trim()) payload.notes = form.notes.trim()
+
+    const resp = await apiClient.post('/api/resource/Sales Entry', payload)
+    const created = resp.data.data as SalesEntryRow
+    showForm.value = false
+    await loadSalesEntries()
+    if (created?.name) {
+      const found = salesEntries.value.find((r) => r.name === created.name)
+      if (found) await selectEntry(found)
+    }
+  } catch (e: any) {
+    createError.value = e?.response?.data?.message || e?.message || 'Failed to save sales entry.'
+  } finally {
+    creating.value = false
   }
 }
 

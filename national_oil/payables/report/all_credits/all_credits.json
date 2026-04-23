@@ -1,0 +1,27 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2026-04-23 00:00:00.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-04-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payables",
+ "name": "All Credits",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT\n  sc.name AS `Reference`,\n  sc.supplier AS `Supplier`,\n  sc.dated AS `Date`,\n  sc.source_document_type AS `Source Type`,\n  sc.source_document AS `Source Document`,\n  sc.total_amount AS `Total Amount`,\n  sc.amount_paid AS `Amount Paid`,\n  sc.balance AS `Balance`,\n  sc.status AS `Status`\nFROM `tabSupplier Credit` sc\nWHERE sc.docstatus < 2\n  AND (%(supplier)s IS NULL OR %(supplier)s = '' OR sc.supplier = %(supplier)s)\n  AND (%(from_date)s IS NULL OR %(from_date)s = '' OR sc.dated >= %(from_date)s)\n  AND (%(to_date)s IS NULL OR %(to_date)s = '' OR sc.dated <= %(to_date)s)\nORDER BY sc.dated DESC",
+ "ref_doctype": "Supplier Credit",
+ "report_name": "All Credits",
+ "report_type": "Query Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "Station Manager"},
+  {"role": "Accountant"}
+ ]
+}

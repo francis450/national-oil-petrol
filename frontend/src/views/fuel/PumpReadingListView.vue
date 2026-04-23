@@ -1,8 +1,16 @@
 <template>
   <div class="space-y-6">
-    <div>
-      <h1 class="text-3xl font-bold text-white mb-1">Pump Readings</h1>
-      <p class="text-gray-400">Recent forecourt readings with live throughput summaries from the custom pump log.</p>
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-1">Pump Readings</h1>
+        <p class="text-gray-400">Recent forecourt readings with live throughput summaries from the custom pump log.</p>
+      </div>
+      <button
+        @click="openCreate"
+        class="px-4 py-2 bg-deepseek-blue text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shrink-0"
+      >
+        + New Reading
+      </button>
     </div>
 
     <div v-if="pageError" class="p-4 rounded-lg border border-red-800 bg-red-900 bg-opacity-20 text-red-200 text-sm">
@@ -144,12 +152,119 @@
         </template>
       </aside>
     </div>
+
+    <SlideOver v-model="showForm" title="New Pump Reading">
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Date <span class="text-red-400">*</span></label>
+            <input
+              v-model="form.dated"
+              type="date"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Pump Number <span class="text-red-400">*</span></label>
+            <input
+              v-model="form.pump_number"
+              type="text"
+              placeholder="e.g. P1, P2"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Fuel Type <span class="text-red-400">*</span></label>
+          <input
+            v-model="form.fuel_type"
+            type="text"
+            placeholder="e.g. Petrol, Diesel"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Opening Reading <span class="text-red-400">*</span></label>
+            <input
+              v-model.number="form.opening_reading"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Closing Reading <span class="text-red-400">*</span></label>
+            <input
+              v-model.number="form.closing_reading"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Attendant</label>
+            <input
+              v-model="form.attendant"
+              type="text"
+              placeholder="Employee ID (optional)"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Department</label>
+            <input
+              v-model="form.department"
+              type="text"
+              placeholder="Department (optional)"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Notes</label>
+          <textarea
+            v-model="form.notes"
+            rows="2"
+            placeholder="Optional notes"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none"
+          ></textarea>
+        </div>
+        <div
+          v-if="createError"
+          class="p-3 rounded-lg border border-red-800 bg-red-900/20 text-red-200 text-xs"
+        >{{ createError }}</div>
+      </div>
+      <template #footer>
+        <button
+          @click="showForm = false"
+          class="px-4 py-2 text-sm text-gray-300 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          @click="saveForm"
+          :disabled="creating"
+          class="px-4 py-2 text-sm text-white bg-deepseek-blue rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors"
+        >
+          {{ creating ? 'Saving...' : 'Create Reading' }}
+        </button>
+      </template>
+    </SlideOver>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { fuelApi, type PumpReadingRow, type PumpReadingSummary } from '@/api/fuel'
+import SlideOver from '@/components/common/SlideOver.vue'
+import { apiClient } from '@/api/client'
 
 const summary = ref<PumpReadingSummary>({
   count: 0,
@@ -179,6 +294,62 @@ const loadReadings = async () => {
     pageError.value = error?.response?.data?.message || error?.message || 'Failed to load pump readings.'
   } finally {
     loading.value = false
+  }
+}
+
+const showForm = ref(false)
+const creating = ref(false)
+const createError = ref('')
+const form = reactive({
+  dated: '',
+  pump_number: '',
+  fuel_type: '',
+  opening_reading: 0,
+  closing_reading: 0,
+  attendant: '',
+  department: '',
+  notes: '',
+})
+
+const openCreate = () => {
+  form.dated = new Date().toISOString().split('T')[0]
+  form.pump_number = ''
+  form.fuel_type = ''
+  form.opening_reading = 0
+  form.closing_reading = 0
+  form.attendant = ''
+  form.department = ''
+  form.notes = ''
+  createError.value = ''
+  showForm.value = true
+}
+
+const saveForm = async () => {
+  if (!form.dated || !form.pump_number.trim() || !form.fuel_type.trim() || form.opening_reading == null || form.closing_reading == null) {
+    createError.value = 'Date, pump number, fuel type, and both readings are required.'
+    return
+  }
+  creating.value = true
+  createError.value = ''
+  try {
+    const payload: Record<string, any> = {
+      dated: form.dated,
+      pump_number: form.pump_number.trim(),
+      fuel_type: form.fuel_type.trim(),
+      opening_reading: form.opening_reading,
+      closing_reading: form.closing_reading,
+    }
+    if (form.attendant.trim()) payload.attendant = form.attendant.trim()
+    if (form.department.trim()) payload.department = form.department.trim()
+    if (form.notes.trim()) payload.notes = form.notes.trim()
+
+    await apiClient.post('/api/resource/Pump Reading', payload)
+    showForm.value = false
+    await loadReadings()
+  } catch (e: any) {
+    createError.value = e?.response?.data?.message || e?.message || 'Failed to save pump reading.'
+  } finally {
+    creating.value = false
   }
 }
 

@@ -1,0 +1,28 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2026-04-23 00:00:00.000000",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-04-23 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Sales",
+ "name": "Wet Stock Sales",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT\n  se.dated AS `Date`,\n  se.department AS `Department`,\n  SUM(se.amount) AS `Amount`\nFROM `tabSales Entry` se\nWHERE se.docstatus = 1\n  AND se.sale_type = 'Wet Stock'\n  AND (%(from_date)s IS NULL OR %(from_date)s = '' OR se.dated >= %(from_date)s)\n  AND (%(to_date)s IS NULL OR %(to_date)s = '' OR se.dated <= %(to_date)s)\n  AND (%(department)s IS NULL OR %(department)s = '' OR se.department = %(department)s)\nGROUP BY se.dated, se.department\nORDER BY se.dated DESC",
+ "ref_doctype": "Sales Entry",
+ "report_name": "Wet Stock Sales",
+ "report_type": "Query Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "Station Manager"},
+  {"role": "Cashier"},
+  {"role": "Accountant"}
+ ]
+}

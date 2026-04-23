@@ -1,11 +1,19 @@
 <template>
   <div class="space-y-6">
-    <div>
-      <h1 class="text-3xl font-bold text-white mb-1">Customer Receivables</h1>
-      <p class="text-gray-400">Canonical ERPNext sales invoices with draft payment-entry settlement actions.</p>
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-1">Customer Debts</h1>
+        <p class="text-gray-400">Track credit extended to customers and their settlement status.</p>
+      </div>
+      <button
+        @click="openCreate"
+        class="px-4 py-2 bg-deepseek-blue text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shrink-0"
+      >
+        + New Debt
+      </button>
     </div>
 
-    <div v-if="pageError" class="p-4 rounded-lg border border-red-800 bg-red-900 bg-opacity-20 text-red-200 text-sm">
+    <div v-if="pageError" class="p-4 rounded-lg border border-red-800 bg-red-900/20 text-red-200 text-sm">
       {{ pageError }}
     </div>
 
@@ -13,11 +21,11 @@
       <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
         <div class="flex items-center justify-between gap-4">
           <div>
-            <h2 class="text-xl font-bold text-white">Outstanding Sales Invoices</h2>
-            <p class="text-sm text-gray-400">Receivables now come directly from ERPNext instead of a separate debt ledger.</p>
+            <h2 class="text-xl font-bold text-white">All Debts</h2>
+            <p class="text-sm text-gray-400">{{ rows.length }} record(s)</p>
           </div>
           <button
-            @click="loadInvoices"
+            @click="load"
             :disabled="loading"
             class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors text-sm"
           >
@@ -25,70 +33,49 @@
           </button>
         </div>
 
-        <div class="rounded-lg border border-blue-900 bg-blue-950/40 px-4 py-3 text-sm text-blue-100">
-          Payment actions currently create draft ERPNext <span class="font-semibold">Payment Entry</span> records using
-          <span class="font-semibold">Cash</span>, which is the configured settlement mode on this site.
-        </div>
-
-        <div v-if="loading" class="text-sm text-gray-400 py-8 text-center">Loading receivables...</div>
+        <div v-if="loading" class="text-sm text-gray-400 py-8 text-center">Loading customer debts...</div>
 
         <div
-          v-else-if="outstandingInvoices.length === 0"
+          v-else-if="rows.length === 0"
           class="text-sm text-gray-400 py-8 text-center border border-dashed border-gray-800 rounded-lg"
         >
-          No outstanding sales invoices found.
+          No customer debt records found. Use "New Debt" to create the first one.
         </div>
 
         <div v-else class="overflow-x-auto rounded-lg border border-gray-800">
           <table class="w-full text-sm">
             <thead class="bg-gray-950 border-b border-gray-800">
               <tr>
-                <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Invoice</th>
+                <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">ID</th>
                 <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Customer</th>
                 <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Date</th>
                 <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Status</th>
-                <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Outstanding</th>
-                <th class="px-4 py-3 text-center text-gray-400 font-medium text-xs uppercase tracking-wider">Actions</th>
+                <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Payable</th>
+                <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Balance</th>
               </tr>
             </thead>
             <tbody>
               <tr
-                v-for="invoice in outstandingInvoices"
-                :key="invoice.name"
-                class="border-b border-gray-800 transition-colors"
-                :class="selectedInvoice?.name === invoice.name ? 'bg-gray-800' : 'hover:bg-gray-900'"
+                v-for="row in rows"
+                :key="row.name"
+                @click="selected = row"
+                class="border-b border-gray-800 cursor-pointer transition-colors"
+                :class="selected?.name === row.name ? 'bg-gray-800' : 'hover:bg-gray-900/60'"
               >
+                <td class="px-4 py-3 text-gray-100 font-medium">{{ row.name }}</td>
+                <td class="px-4 py-3 text-gray-300">{{ row.customer }}</td>
+                <td class="px-4 py-3 text-gray-300">{{ fmtDate(row.dated) }}</td>
                 <td class="px-4 py-3">
-                  <button class="text-left" @click="selectedInvoice = invoice">
-                    <span class="block text-gray-100 font-medium">{{ invoice.name }}</span>
-                    <span class="block text-xs text-gray-500">{{ formatCurrency(invoice.grand_total) }} total</span>
-                  </button>
+                  <span
+                    class="inline-flex rounded-full border px-2.5 py-0.5 text-xs"
+                    :class="statusClass(row)"
+                  >{{ statusLabel(row) }}</span>
                 </td>
-                <td class="px-4 py-3 text-gray-300">{{ invoice.customer_name || invoice.customer || '—' }}</td>
-                <td class="px-4 py-3 text-gray-300">{{ formatDate(invoice.posting_date) }}</td>
-                <td class="px-4 py-3">
-                  <span class="inline-flex rounded-full border px-2.5 py-1 text-xs" :class="statusClass(invoice.status)">
-                    {{ invoice.status || draftLabel(invoice) }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-amber-300 font-medium">{{ formatCurrency(invoice.outstanding_amount) }}</td>
-                <td class="px-4 py-3">
-                  <div class="flex justify-center gap-2">
-                    <button
-                      @click="selectedInvoice = invoice"
-                      class="px-3 py-1.5 text-xs rounded bg-blue-900 text-blue-200 hover:bg-blue-800 transition-colors"
-                    >
-                      Details
-                    </button>
-                    <button
-                      @click="createPayment(invoice)"
-                      :disabled="creatingPaymentFor === invoice.name || invoice.docstatus !== 1"
-                      class="px-3 py-1.5 text-xs rounded bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {{ creatingPaymentFor === invoice.name ? 'Creating...' : 'Create Cash Payment' }}
-                    </button>
-                  </div>
-                </td>
+                <td class="px-4 py-3 text-gray-300">{{ fmtCurrency(row.payable_amount) }}</td>
+                <td
+                  class="px-4 py-3 font-medium"
+                  :class="row.balance > 0 ? 'text-amber-300' : 'text-green-300'"
+                >{{ fmtCurrency(row.balance) }}</td>
               </tr>
             </tbody>
           </table>
@@ -96,149 +83,307 @@
       </section>
 
       <aside class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
-        <div>
-          <h2 class="text-xl font-bold text-white">Receivable Detail</h2>
-          <p class="text-sm text-gray-400">Focus on ERPNext receivables first, then settle them through standard accounting flows.</p>
-        </div>
+        <h2 class="text-xl font-bold text-white">Detail</h2>
 
         <div
-          v-if="!selectedInvoice"
+          v-if="!selected"
           class="text-sm text-gray-400 py-8 text-center border border-dashed border-gray-800 rounded-lg"
         >
-          Select an invoice to inspect its receivable state.
+          Select a record to inspect it.
         </div>
 
         <template v-else>
-          <div class="rounded-lg border border-gray-800 bg-gray-950 p-4 space-y-4">
+          <div class="rounded-lg border border-gray-800 bg-gray-950 p-4 space-y-3">
             <div>
-              <p class="text-xs uppercase tracking-wider text-gray-500">Sales Invoice</p>
-              <p class="text-lg font-semibold text-white">{{ selectedInvoice.name }}</p>
+              <p class="text-xs uppercase tracking-wider text-gray-500">Customer Debt</p>
+              <p class="text-lg font-semibold text-white">{{ selected.name }}</p>
             </div>
-
             <div class="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <p class="text-gray-500">Customer</p>
-                <p class="text-gray-200">{{ selectedInvoice.customer_name || selectedInvoice.customer || '—' }}</p>
+                <p class="text-gray-200">{{ selected.customer }}</p>
               </div>
               <div>
-                <p class="text-gray-500">Company</p>
-                <p class="text-gray-200">{{ selectedInvoice.company || '—' }}</p>
+                <p class="text-gray-500">Date Incurred</p>
+                <p class="text-gray-200">{{ fmtDate(selected.dated) }}</p>
               </div>
               <div>
-                <p class="text-gray-500">Total</p>
-                <p class="text-gray-200">{{ formatCurrency(selectedInvoice.grand_total) }}</p>
+                <p class="text-gray-500">Payable</p>
+                <p class="text-gray-200">{{ fmtCurrency(selected.payable_amount) }}</p>
               </div>
               <div>
-                <p class="text-gray-500">Outstanding</p>
-                <p class="text-amber-300">{{ formatCurrency(selectedInvoice.outstanding_amount) }}</p>
+                <p class="text-gray-500">Paid</p>
+                <p class="text-gray-200">{{ fmtCurrency(selected.amount_paid) }}</p>
               </div>
               <div>
-                <p class="text-gray-500">Posting Date</p>
-                <p class="text-gray-200">{{ formatDate(selectedInvoice.posting_date) }}</p>
+                <p class="text-gray-500">Balance</p>
+                <p :class="selected.balance > 0 ? 'text-amber-300 font-medium' : 'text-green-300'">
+                  {{ fmtCurrency(selected.balance) }}
+                </p>
               </div>
               <div>
-                <p class="text-gray-500">Docstatus</p>
-                <p class="text-gray-200">{{ selectedInvoice.docstatus === 1 ? 'Submitted' : 'Draft' }}</p>
+                <p class="text-gray-500">Status</p>
+                <span
+                  class="inline-flex rounded-full border px-2.5 py-0.5 text-xs"
+                  :class="statusClass(selected)"
+                >{{ statusLabel(selected) }}</span>
               </div>
             </div>
+          </div>
 
-            <div class="rounded-lg border border-gray-800 bg-black p-3 text-sm text-gray-300 space-y-2">
-              <p class="text-xs uppercase tracking-wider text-gray-500">Settlement Rule</p>
-              <p>
-                Payment entries can only be created from submitted ERPNext invoices. Draft invoices should be reviewed and
-                submitted in ERPNext first.
-              </p>
-            </div>
+          <div
+            v-if="actionError"
+            class="p-3 rounded-lg border border-red-800 bg-red-900/20 text-red-200 text-xs"
+          >{{ actionError }}</div>
 
+          <div class="flex flex-col gap-2">
             <button
-              @click="createPayment(selectedInvoice)"
-              :disabled="creatingPaymentFor === selectedInvoice.name || selectedInvoice.docstatus !== 1"
-              class="w-full px-4 py-2 rounded-lg bg-deepseek-blue text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              v-if="selected.docstatus === 0"
+              @click="openEdit(selected)"
+              class="w-full px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors text-sm"
             >
-              {{ creatingPaymentFor === selectedInvoice.name ? 'Creating Payment Entry...' : 'Create Cash Payment Entry' }}
+              Edit Draft
+            </button>
+            <button
+              v-if="selected.docstatus === 0"
+              @click="submitDoc(selected)"
+              :disabled="actioning"
+              class="w-full px-4 py-2 rounded-lg bg-deepseek-blue text-white hover:bg-blue-700 disabled:opacity-40 transition-colors text-sm"
+            >
+              {{ actioning ? 'Submitting...' : 'Submit' }}
+            </button>
+            <button
+              v-if="selected.docstatus === 1"
+              @click="cancelDoc(selected)"
+              :disabled="actioning"
+              class="w-full px-4 py-2 rounded-lg border border-red-800 bg-red-900/20 text-red-300 hover:bg-red-900/40 disabled:opacity-40 transition-colors text-sm"
+            >
+              {{ actioning ? 'Cancelling...' : 'Cancel Document' }}
             </button>
           </div>
         </template>
-
-        <div v-if="createdPayments.length" class="pt-2 border-t border-gray-800 space-y-2">
-          <p class="text-xs uppercase tracking-wider text-gray-500">Created ERPNext Drafts</p>
-          <div
-            v-for="payment in createdPayments"
-            :key="payment.name"
-            class="rounded border border-green-800 bg-green-900 bg-opacity-10 px-3 py-2 text-sm text-green-200"
-          >
-            Payment Entry: {{ payment.name }} for {{ payment.reference_name }}
-          </div>
-        </div>
       </aside>
     </div>
+
+    <SlideOver v-model="showForm" :title="editTarget ? 'Edit Customer Debt' : 'New Customer Debt'">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">
+            Customer <span class="text-red-400">*</span>
+          </label>
+          <input
+            v-model="form.customer"
+            type="text"
+            placeholder="e.g. CUST-001 or customer name"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">
+            Date Incurred <span class="text-red-400">*</span>
+          </label>
+          <input
+            v-model="form.dated"
+            type="date"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">
+            Payable Amount (KSh) <span class="text-red-400">*</span>
+          </label>
+          <input
+            v-model.number="form.payable_amount"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Notes</label>
+          <textarea
+            v-model="form.notes"
+            rows="3"
+            placeholder="Optional notes"
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-none"
+          ></textarea>
+        </div>
+        <div
+          v-if="formError"
+          class="p-3 rounded-lg border border-red-800 bg-red-900/20 text-red-200 text-xs"
+        >{{ formError }}</div>
+      </div>
+      <template #footer>
+        <button
+          @click="showForm = false"
+          class="px-4 py-2 text-sm text-gray-300 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          @click="saveForm"
+          :disabled="saving"
+          class="px-4 py-2 text-sm text-white bg-deepseek-blue rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors"
+        >
+          {{ saving ? 'Saving...' : (editTarget ? 'Update' : 'Create') }}
+        </button>
+      </template>
+    </SlideOver>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { commerceApi, type CommerceInvoiceRow, type PaymentEntryResult } from '@/api/commerce'
+import { onMounted, reactive, ref } from 'vue'
+import SlideOver from '@/components/common/SlideOver.vue'
+import { frappeDB, apiClient } from '@/api/client'
 
-const invoices = ref<CommerceInvoiceRow[]>([])
-const loading = ref(false)
-const pageError = ref('')
-const creatingPaymentFor = ref('')
-const selectedInvoice = ref<CommerceInvoiceRow | null>(null)
-const createdPayments = ref<PaymentEntryResult[]>([])
-
-const outstandingInvoices = computed(() =>
-  invoices.value.filter((invoice) => Number(invoice.outstanding_amount || 0) > 0),
-)
-
-const formatCurrency = (value?: number) => `KSh ${Number(value || 0).toLocaleString()}`
-const formatDate = (value?: string) => (value ? new Date(value).toLocaleDateString('en-KE') : '—')
-const draftLabel = (invoice: CommerceInvoiceRow) => (invoice.docstatus === 1 ? 'Submitted' : 'Draft')
-
-const statusClass = (status?: string) => {
-  if (status === 'Overdue' || status === 'Unpaid') {
-    return 'border-amber-700 bg-amber-950 text-amber-200'
-  }
-  if (status === 'Paid') {
-    return 'border-green-700 bg-green-950 text-green-200'
-  }
-  return 'border-gray-700 bg-gray-900 text-gray-200'
+interface CustomerDebtRow {
+  name: string
+  customer: string
+  dated: string
+  status: string
+  payable_amount: number
+  amount_paid: number
+  balance: number
+  docstatus: number
 }
 
-const loadInvoices = async () => {
+const rows = ref<CustomerDebtRow[]>([])
+const selected = ref<CustomerDebtRow | null>(null)
+const loading = ref(false)
+const pageError = ref('')
+const actioning = ref(false)
+const actionError = ref('')
+
+const showForm = ref(false)
+const editTarget = ref<CustomerDebtRow | null>(null)
+const saving = ref(false)
+const formError = ref('')
+const form = reactive({ customer: '', dated: '', payable_amount: 0, notes: '' })
+
+const today = () => new Date().toISOString().split('T')[0]
+const fmtCurrency = (v?: number) => `KSh ${Number(v || 0).toLocaleString()}`
+const fmtDate = (v?: string) => (v ? new Date(v).toLocaleDateString('en-KE') : '—')
+
+const statusLabel = (row: CustomerDebtRow) => {
+  if (row.docstatus === 2) return 'Cancelled'
+  if (row.docstatus === 0) return 'Draft'
+  return row.status || 'Open'
+}
+
+const statusClass = (row: CustomerDebtRow) => {
+  if (row.docstatus === 2) return 'border-red-800 bg-red-950/60 text-red-300'
+  if (row.docstatus === 0) return 'border-gray-700 bg-gray-800 text-gray-400'
+  switch (row.status) {
+    case 'Open': return 'border-amber-700 bg-amber-950/60 text-amber-300'
+    case 'Partially Paid': return 'border-blue-700 bg-blue-950/60 text-blue-300'
+    case 'Settled': return 'border-green-700 bg-green-950/60 text-green-300'
+    case 'Written Off': return 'border-gray-600 bg-gray-900 text-gray-400'
+    default: return 'border-gray-700 bg-gray-900 text-gray-300'
+  }
+}
+
+const load = async () => {
   loading.value = true
   pageError.value = ''
-
   try {
-    invoices.value = await commerceApi.listReceivableInvoices()
-    if (!selectedInvoice.value && outstandingInvoices.value.length > 0) {
-      selectedInvoice.value = outstandingInvoices.value[0]
+    rows.value = await frappeDB.getDocList<CustomerDebtRow>('Customer Debt', {
+      fields: ['name', 'customer', 'dated', 'status', 'payable_amount', 'amount_paid', 'balance', 'docstatus'],
+      orderBy: { field: 'dated', order: 'desc' },
+      limit: 100,
+    })
+    if (selected.value) {
+      selected.value = rows.value.find((r) => r.name === selected.value!.name) ?? null
     }
-  } catch (error: any) {
-    pageError.value = error?.response?.data?.message || error?.message || 'Failed to load customer receivables.'
+  } catch (e: any) {
+    pageError.value = e?.response?.data?.message || e?.message || 'Failed to load customer debts.'
   } finally {
     loading.value = false
   }
 }
 
-const createPayment = async (invoice: CommerceInvoiceRow) => {
-  creatingPaymentFor.value = invoice.name
-  pageError.value = ''
+const openCreate = () => {
+  editTarget.value = null
+  form.customer = ''
+  form.dated = today()
+  form.payable_amount = 0
+  form.notes = ''
+  formError.value = ''
+  showForm.value = true
+}
 
+const openEdit = (row: CustomerDebtRow) => {
+  editTarget.value = row
+  form.customer = row.customer
+  form.dated = row.dated
+  form.payable_amount = row.payable_amount
+  form.notes = ''
+  formError.value = ''
+  showForm.value = true
+}
+
+const saveForm = async () => {
+  if (!form.customer.trim() || !form.dated || !form.payable_amount) {
+    formError.value = 'Customer, date, and payable amount are required.'
+    return
+  }
+  saving.value = true
+  formError.value = ''
   try {
-    const result = await commerceApi.createPaymentEntry('Sales Invoice', invoice.name)
-    createdPayments.value = [
-      result,
-      ...createdPayments.value.filter((entry) => entry.name !== result.name),
-    ]
-  } catch (error: any) {
-    pageError.value =
-      error?.response?.data?.message || error?.message || `Failed to create payment entry for ${invoice.name}.`
+    const payload = {
+      customer: form.customer.trim(),
+      dated: form.dated,
+      payable_amount: form.payable_amount,
+      notes: form.notes,
+    }
+    if (editTarget.value) {
+      await apiClient.put(`/api/resource/Customer Debt/${editTarget.value.name}`, payload)
+    } else {
+      const resp = await apiClient.post('/api/resource/Customer Debt', payload)
+      const created = resp.data.data as CustomerDebtRow
+      await load()
+      selected.value = rows.value.find((r) => r.name === created.name) ?? null
+      showForm.value = false
+      return
+    }
+    await load()
+    showForm.value = false
+  } catch (e: any) {
+    formError.value = e?.response?.data?.message || e?.message || 'Failed to save.'
   } finally {
-    creatingPaymentFor.value = ''
+    saving.value = false
   }
 }
 
-onMounted(async () => {
-  await loadInvoices()
-})
+const submitDoc = async (row: CustomerDebtRow) => {
+  if (!window.confirm(`Submit ${row.name}? Once submitted, edit is locked.`)) return
+  actioning.value = true
+  actionError.value = ''
+  try {
+    await apiClient.post(`/api/resource/Customer Debt/${row.name}/submit`)
+    await load()
+  } catch (e: any) {
+    actionError.value = e?.response?.data?.message || e?.message || 'Failed to submit.'
+  } finally {
+    actioning.value = false
+  }
+}
+
+const cancelDoc = async (row: CustomerDebtRow) => {
+  if (!window.confirm(`Cancel ${row.name}? This will reverse linked payments.`)) return
+  actioning.value = true
+  actionError.value = ''
+  try {
+    await apiClient.post(`/api/resource/Customer Debt/${row.name}/cancel`)
+    await load()
+  } catch (e: any) {
+    actionError.value = e?.response?.data?.message || e?.message || 'Failed to cancel.'
+  } finally {
+    actioning.value = false
+  }
+}
+
+onMounted(load)
 </script>
