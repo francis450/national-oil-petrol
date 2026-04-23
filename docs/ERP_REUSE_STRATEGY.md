@@ -86,6 +86,23 @@ Avoid:
 
 unless there is a hard business rule that cannot be met with HRMS customization.
 
+### Existing Custom HR/Logistics Records to Treat as Legacy
+
+The current `national_oil` app already contains some overlapping custom structures.
+
+These should be treated as legacy candidates, not future foundation models:
+
+- `NO Employee`
+- planned `Attendance Record`
+- planned `Leave Request`
+- custom `petrol_setup.Driver` if ERPNext `Driver` is sufficient
+
+Preferred direction:
+
+- stop building new UI/API dependencies on these custom records
+- shift new frontend work to canonical ERPNext/HRMS APIs
+- only keep overlapping custom DocTypes if they hold data or behavior that cannot be migrated cleanly
+
 ### Inventory and Products
 
 Prefer:
@@ -97,6 +114,21 @@ Prefer:
 - ERPNext `Stock Entry`
 
 Use National Oil custom records only where wet-stock operational capture must precede or supplement accounting stock flows.
+
+### Existing Custom Inventory / Commercial Records to Treat Carefully
+
+The current `national_oil` app includes overlapping custom records in this area:
+
+- `Product`
+- `Inventory Receipt`
+- `Sales Entry`
+
+Preferred direction:
+
+- treat ERPNext `Item` as the canonical product and service master across petrol station, car wash, cafeteria, and retail
+- treat ERPNext `Purchase Receipt`, `Purchase Invoice`, `Sales Invoice`, and `Payment Entry` as the canonical accounting/commercial records
+- keep `Fuel Purchase`, `Pump Reading`, and other wet-stock operational captures only where they serve a true operational purpose before ERPNext posting
+- avoid adding new dependencies on custom `Product` unless we explicitly decide it remains an operational abstraction over `Item`
 
 ---
 
@@ -120,4 +152,3 @@ This lets the UI stay product-specific while ERPNext remains the back-office cor
 2. Audit custom DocTypes that duplicate ERPNext/HRMS concepts
 3. Convert planning docs to “reuse first, customize second”
 4. Implement future frontend forms against canonical APIs, not duplicate master DocTypes
-
