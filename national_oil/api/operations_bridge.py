@@ -86,15 +86,51 @@ def _get_default_company():
 	)
 
 
-def _get_default_warehouse():
-	return frappe.db.get_value("Warehouse", {"is_group": 0}, "name")
+def _warehouse_belongs_to_company(warehouse, company):
+	if not warehouse or not company:
+		return False
+	return frappe.db.get_value("Warehouse", warehouse, "company") == company
 
 
-def _get_item_default_warehouse(item_code):
+def _get_default_warehouse(company=None):
+	filters = {"is_group": 0}
+	if company:
+		filters["company"] = company
+	return frappe.db.get_value("Warehouse", filters, "name")
+
+
+def _get_item_default_warehouse(item_code, company=None, warehouse=None):
+	if warehouse and _warehouse_belongs_to_company(warehouse, company):
+		return warehouse
+
+	if company:
+		item_default_warehouse = frappe.db.get_value(
+			"Item Default",
+			{"parent": item_code, "company": company},
+			"default_warehouse",
+		)
+		if item_default_warehouse and _warehouse_belongs_to_company(item_default_warehouse, company):
+			return item_default_warehouse
+
 	return (
 		frappe.db.get_value("Item Default", {"parent": item_code}, "default_warehouse")
-		or _get_default_warehouse()
-	)
+		if not company
+		else None
+	) or _get_default_warehouse(company=company)
+
+
+def _resolve_stock_warehouse(company, item_code=None, warehouse=None):
+	if warehouse and _warehouse_belongs_to_company(warehouse, company):
+		return warehouse
+	if item_code:
+		resolved = _get_item_default_warehouse(item_code, company=company, warehouse=warehouse)
+		if resolved and _warehouse_belongs_to_company(resolved, company):
+			return resolved
+	return _get_default_warehouse(company=company)
+
+
+def _warehouse_resolution_message(source_label, company):
+	return f"No ERPNext Warehouse could be resolved for {source_label} in company {company}."
 
 
 def _is_stock_item(item_code):
@@ -109,9 +145,11 @@ def _build_fuel_purchase_purchase_receipt_payload(doc, company=None, warehouse=N
 		getattr(doc, "brand", None),
 	)
 	resolved_company = company or getattr(doc, "company", None) or _get_default_company()
-	resolved_warehouse = warehouse or getattr(doc, "warehouse", None)
-	if resolved_item_code and not resolved_warehouse:
-		resolved_warehouse = _get_item_default_warehouse(resolved_item_code)
+	resolved_warehouse = _resolve_stock_warehouse(
+		resolved_company,
+		item_code=resolved_item_code,
+		warehouse=warehouse or getattr(doc, "warehouse", None),
+	)
 
 	unresolved = []
 	if not resolved_item_code:
@@ -119,7 +157,7 @@ def _build_fuel_purchase_purchase_receipt_payload(doc, company=None, warehouse=N
 	if not resolved_company:
 		unresolved.append("No ERPNext Company could be resolved for this fuel purchase.")
 	if not resolved_warehouse:
-		unresolved.append("No ERPNext Warehouse could be resolved for this fuel purchase.")
+		unresolved.append(_warehouse_resolution_message("this fuel purchase", resolved_company))
 
 	item_uom = None
 	if resolved_item_code:
@@ -196,9 +234,11 @@ def _build_inventory_receipt_purchase_receipt_payload(doc, company=None, warehou
 		getattr(doc, "brand", None),
 	)
 	resolved_company = company or getattr(doc, "company", None) or _get_default_company()
-	resolved_warehouse = warehouse or getattr(doc, "warehouse", None)
-	if resolved_item_code and not resolved_warehouse:
-		resolved_warehouse = _get_item_default_warehouse(resolved_item_code)
+	resolved_warehouse = _resolve_stock_warehouse(
+		resolved_company,
+		item_code=resolved_item_code,
+		warehouse=warehouse or getattr(doc, "warehouse", None),
+	)
 
 	unresolved = []
 	if not resolved_item_code:
@@ -206,7 +246,7 @@ def _build_inventory_receipt_purchase_receipt_payload(doc, company=None, warehou
 	if not resolved_company:
 		unresolved.append("No ERPNext Company could be resolved for this inventory receipt.")
 	if not resolved_warehouse:
-		unresolved.append("No ERPNext Warehouse could be resolved for this inventory receipt.")
+		unresolved.append(_warehouse_resolution_message("this inventory receipt", resolved_company))
 
 	item_uom = None
 	if resolved_item_code:
@@ -308,9 +348,15 @@ def _build_sales_entry_sales_invoice_payload(doc, company=None):
 	for row in item_rows:
 		item_code = row.get("item_code")
 		if item_code and _is_stock_item(item_code):
-			row.setdefault("warehouse", _get_item_default_warehouse(item_code))
+			row["warehouse"] = _resolve_stock_warehouse(
+				resolved_company,
+				item_code=item_code,
+				warehouse=row.get("warehouse"),
+			)
 			if not row.get("warehouse"):
-				unresolved.append(f"No ERPNext Warehouse could be resolved for stock item {item_code}.")
+				unresolved.append(
+					f"No ERPNext Warehouse could be resolved for stock item {item_code} in company {resolved_company}."
+				)
 
 	sales_invoice = {
 		"doctype": "Sales Invoice",
