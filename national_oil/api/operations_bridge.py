@@ -135,6 +135,139 @@ def _build_fuel_purchase_purchase_receipt_payload(doc, company=None, warehouse=N
 	return payload, unresolved
 
 
+def _build_fuel_purchase_purchase_invoice_payload(doc, company=None, item_code=None):
+	resolved_item_code = item_code or _find_item_code(
+		getattr(doc, "item_code", None),
+		getattr(doc, "erpnext_item", None),
+		getattr(doc, "fuel_type", None),
+		getattr(doc, "brand", None),
+	)
+	resolved_company = company or getattr(doc, "company", None) or _get_default_company()
+
+	unresolved = []
+	if not resolved_item_code:
+		unresolved.append("No canonical ERPNext Item could be resolved for this fuel purchase.")
+	if not resolved_company:
+		unresolved.append("No ERPNext Company could be resolved for this fuel purchase.")
+
+	item_uom = None
+	if resolved_item_code:
+		item_uom = frappe.db.get_value("Item", resolved_item_code, "stock_uom")
+
+	payload = {
+		"doctype": "Purchase Invoice",
+		"supplier": doc.supplier,
+		"posting_date": doc.dated,
+		"company": resolved_company,
+		"bill_no": doc.code,
+		"items": [
+			{
+				"item_code": resolved_item_code,
+				"qty": flt(doc.actual_quantity),
+				"uom": item_uom or getattr(doc, "unit_of_measure", None),
+				"stock_uom": item_uom,
+				"rate": flt(doc.unit_cost),
+				"amount": flt(doc.total_cost),
+			}
+		],
+		"remarks": f"Mapped from Fuel Purchase {getattr(doc, 'name', 'unsaved')} / {doc.code}",
+	}
+	return payload, unresolved
+
+
+def _build_inventory_receipt_purchase_receipt_payload(doc, company=None, warehouse=None, item_code=None):
+	resolved_item_code = item_code or _find_item_code(
+		getattr(doc, "item_code", None),
+		getattr(doc, "erpnext_item", None),
+		getattr(doc, "product", None),
+		getattr(doc, "brand", None),
+	)
+	resolved_company = company or getattr(doc, "company", None) or _get_default_company()
+	resolved_warehouse = warehouse or getattr(doc, "warehouse", None)
+	if resolved_item_code and not resolved_warehouse:
+		resolved_warehouse = _get_item_default_warehouse(resolved_item_code)
+
+	unresolved = []
+	if not resolved_item_code:
+		unresolved.append("No canonical ERPNext Item could be resolved for this inventory receipt.")
+	if not resolved_company:
+		unresolved.append("No ERPNext Company could be resolved for this inventory receipt.")
+	if not resolved_warehouse:
+		unresolved.append("No ERPNext Warehouse could be resolved for this inventory receipt.")
+
+	item_uom = None
+	if resolved_item_code:
+		item_uom = frappe.db.get_value("Item", resolved_item_code, "stock_uom")
+
+	qty = flt(doc.units) * max(int(getattr(doc, "subunits_per_unit", 0) or 1), 1)
+	rate = flt(getattr(doc, "subunit_cost", 0) or getattr(doc, "unit_cost", 0))
+
+	payload = {
+		"doctype": "Purchase Receipt",
+		"supplier": doc.supplier,
+		"posting_date": doc.dated,
+		"company": resolved_company,
+		"set_warehouse": resolved_warehouse,
+		"supplier_delivery_note": doc.code,
+		"items": [
+			{
+				"item_code": resolved_item_code,
+				"qty": qty,
+				"uom": item_uom or getattr(doc, "unit_of_measure", None),
+				"stock_uom": item_uom,
+				"warehouse": resolved_warehouse,
+				"rate": rate,
+				"amount": flt(doc.total_cost),
+			}
+		],
+		"remarks": f"Mapped from Inventory Receipt {getattr(doc, 'name', 'unsaved')} / {doc.code}",
+	}
+	return payload, unresolved
+
+
+def _build_inventory_receipt_purchase_invoice_payload(doc, company=None, item_code=None):
+	resolved_item_code = item_code or _find_item_code(
+		getattr(doc, "item_code", None),
+		getattr(doc, "erpnext_item", None),
+		getattr(doc, "product", None),
+		getattr(doc, "brand", None),
+	)
+	resolved_company = company or getattr(doc, "company", None) or _get_default_company()
+
+	unresolved = []
+	if not resolved_item_code:
+		unresolved.append("No canonical ERPNext Item could be resolved for this inventory receipt.")
+	if not resolved_company:
+		unresolved.append("No ERPNext Company could be resolved for this inventory receipt.")
+
+	item_uom = None
+	if resolved_item_code:
+		item_uom = frappe.db.get_value("Item", resolved_item_code, "stock_uom")
+
+	qty = flt(doc.units) * max(int(getattr(doc, "subunits_per_unit", 0) or 1), 1)
+	rate = flt(getattr(doc, "subunit_cost", 0) or getattr(doc, "unit_cost", 0))
+
+	payload = {
+		"doctype": "Purchase Invoice",
+		"supplier": doc.supplier,
+		"posting_date": doc.dated,
+		"company": resolved_company,
+		"bill_no": doc.code,
+		"items": [
+			{
+				"item_code": resolved_item_code,
+				"qty": qty,
+				"uom": item_uom or getattr(doc, "unit_of_measure", None),
+				"stock_uom": item_uom,
+				"rate": rate,
+				"amount": flt(doc.total_cost),
+			}
+		],
+		"remarks": f"Mapped from Inventory Receipt {getattr(doc, 'name', 'unsaved')} / {doc.code}",
+	}
+	return payload, unresolved
+
+
 def _build_sales_entry_sales_invoice_payload(doc, company=None):
 	resolved_company = company or getattr(doc, "company", None) or _get_default_company()
 	unresolved = []
@@ -181,27 +314,9 @@ def _build_sales_entry_sales_invoice_payload(doc, company=None):
 
 def _fuel_purchase_targets(doc):
 	purchase_receipt, unresolved = _build_fuel_purchase_purchase_receipt_payload(doc)
-	item_code = purchase_receipt["items"][0]["item_code"]
-	resolved_company = purchase_receipt.get("company")
-
-	purchase_invoice = {
-		"doctype": "Purchase Invoice",
-		"supplier": doc.supplier,
-		"posting_date": doc.dated,
-		"company": resolved_company,
-		"bill_no": doc.code,
-		"items": [
-			{
-				"item_code": item_code,
-				"qty": flt(doc.actual_quantity),
-				"uom": purchase_receipt["items"][0].get("uom"),
-				"stock_uom": purchase_receipt["items"][0].get("stock_uom"),
-				"rate": flt(doc.unit_cost),
-				"amount": flt(doc.total_cost),
-			}
-		],
-		"remarks": f"Mapped from Fuel Purchase {getattr(doc, 'name', 'unsaved')} / {doc.code}",
-	}
+	purchase_invoice, invoice_unresolved = _build_fuel_purchase_purchase_invoice_payload(
+		doc, company=purchase_receipt.get("company"), item_code=purchase_receipt["items"][0]["item_code"]
+	)
 
 	targets = [
 		{
@@ -210,13 +325,13 @@ def _fuel_purchase_targets(doc):
 			"payload": purchase_receipt,
 			"unresolved_dependencies": unresolved,
 		},
-		{
-			"target_doctype": "Purchase Invoice",
-			"recommended": True,
-			"payload": purchase_invoice,
-			"unresolved_dependencies": unresolved,
-		},
-	]
+			{
+				"target_doctype": "Purchase Invoice",
+				"recommended": True,
+				"payload": purchase_invoice,
+				"unresolved_dependencies": invoice_unresolved,
+			},
+		]
 
 	if flt(getattr(doc, "amount_paid", 0)) > 0:
 		targets.append(
@@ -243,47 +358,27 @@ def _fuel_purchase_targets(doc):
 
 
 def _inventory_receipt_targets(doc):
-	item_code = _find_item_code(
-		getattr(doc, "item_code", None),
-		getattr(doc, "erpnext_item", None),
-		getattr(doc, "product", None),
-		getattr(doc, "brand", None),
+	purchase_receipt, unresolved = _build_inventory_receipt_purchase_receipt_payload(doc)
+	purchase_invoice, invoice_unresolved = _build_inventory_receipt_purchase_invoice_payload(
+		doc,
+		company=purchase_receipt.get("company"),
+		item_code=purchase_receipt["items"][0]["item_code"],
 	)
-	unresolved = []
-	if not item_code:
-		unresolved.append("No canonical ERPNext Item could be resolved for this inventory receipt.")
-
-	qty = flt(doc.units) * max(int(getattr(doc, "subunits_per_unit", 0) or 1), 1)
-	rate = flt(getattr(doc, "subunit_cost", 0) or getattr(doc, "unit_cost", 0))
 
 	targets = [
 		{
-			"target_doctype": "Purchase Receipt",
-			"recommended": True,
-			"payload": {
-				"doctype": "Purchase Receipt",
-				"supplier": doc.supplier,
-				"posting_date": doc.dated,
-				"supplier_delivery_note": doc.code,
-				"items": [{"item_code": item_code, "qty": qty, "uom": doc.unit_of_measure, "rate": rate}],
-				"remarks": f"Mapped from Inventory Receipt {getattr(doc, 'name', 'unsaved')} / {doc.code}",
+				"target_doctype": "Purchase Receipt",
+				"recommended": True,
+				"payload": purchase_receipt,
+				"unresolved_dependencies": unresolved,
 			},
-			"unresolved_dependencies": unresolved,
-		},
-		{
-			"target_doctype": "Purchase Invoice",
-			"recommended": True,
-			"payload": {
-				"doctype": "Purchase Invoice",
-				"supplier": doc.supplier,
-				"posting_date": doc.dated,
-				"bill_no": doc.code,
-				"items": [{"item_code": item_code, "qty": qty, "uom": doc.unit_of_measure, "rate": rate}],
-				"remarks": f"Mapped from Inventory Receipt {getattr(doc, 'name', 'unsaved')} / {doc.code}",
+			{
+				"target_doctype": "Purchase Invoice",
+				"recommended": True,
+				"payload": purchase_invoice,
+				"unresolved_dependencies": invoice_unresolved,
 			},
-			"unresolved_dependencies": unresolved,
-		},
-	]
+		]
 
 	if flt(getattr(doc, "amount_paid", 0)) > 0:
 		targets.append(
@@ -428,6 +523,25 @@ def create_erpnext_target_from_operational(
 			source_doc,
 			company=company,
 			warehouse=warehouse,
+			item_code=item_code,
+		)
+	elif source_doctype == "Fuel Purchase" and target_doctype == "Purchase Invoice":
+		payload, unresolved = _build_fuel_purchase_purchase_invoice_payload(
+			source_doc,
+			company=company,
+			item_code=item_code,
+		)
+	elif source_doctype == "Inventory Receipt" and target_doctype == "Purchase Receipt":
+		payload, unresolved = _build_inventory_receipt_purchase_receipt_payload(
+			source_doc,
+			company=company,
+			warehouse=warehouse,
+			item_code=item_code,
+		)
+	elif source_doctype == "Inventory Receipt" and target_doctype == "Purchase Invoice":
+		payload, unresolved = _build_inventory_receipt_purchase_invoice_payload(
+			source_doc,
+			company=company,
 			item_code=item_code,
 		)
 	elif source_doctype == "Sales Entry" and target_doctype == "Sales Invoice":

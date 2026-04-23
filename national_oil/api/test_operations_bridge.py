@@ -188,3 +188,170 @@ class TestOperationsBridge(FrappeTestCase):
 		self.assertEqual(result["target_doctype"], "Sales Invoice")
 		self.assertEqual(result["docstatus"], 0)
 		self.assertTrue(frappe.db.exists("Sales Invoice", result["name"]))
+
+	def test_creates_purchase_invoice_draft_from_fuel_purchase(self):
+		supplier_name = "NO Test Supplier Bridge PI"
+		item_code = "NO-BRIDGE-FUEL-ITEM-PI"
+		company = frappe.db.get_single_value("Global Defaults", "default_company") or frappe.db.get_value(
+			"Company", {}, "name"
+		)
+		supplier_group = frappe.db.get_value("Supplier Group", {}, "name")
+		item_group = frappe.db.get_value("Item Group", {"is_group": 0}, "name")
+		stock_uom = frappe.db.get_value("UOM", {}, "name")
+
+		if not frappe.db.exists("Supplier", supplier_name):
+			frappe.get_doc(
+				{
+					"doctype": "Supplier",
+					"supplier_name": supplier_name,
+					"supplier_group": supplier_group,
+				}
+			).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("Item", item_code):
+			frappe.get_doc(
+				{
+					"doctype": "Item",
+					"item_code": item_code,
+					"item_name": "NO Bridge Fuel Item PI",
+					"item_group": item_group,
+					"stock_uom": stock_uom,
+					"is_stock_item": 1,
+					"is_purchase_item": 1,
+				}
+			).insert(ignore_permissions=True)
+
+		result = create_erpnext_target_from_operational(
+			"Fuel Purchase",
+			"Purchase Invoice",
+			doc={
+				"doctype": "Fuel Purchase",
+				"code": "FP-CREATE-PI-001",
+				"dated": "2026-04-23",
+				"supplier": supplier_name,
+				"fuel_type": "Petrol",
+				"unit_of_measure": stock_uom,
+				"actual_quantity": 100,
+				"unit_cost": 125,
+				"total_cost": 12500,
+				"amount_paid": 0,
+			},
+			item_code=item_code,
+			company=company,
+		)
+
+		self.assertEqual(result["target_doctype"], "Purchase Invoice")
+		self.assertEqual(result["docstatus"], 0)
+		self.assertTrue(frappe.db.exists("Purchase Invoice", result["name"]))
+
+	def test_creates_purchase_receipt_draft_from_inventory_receipt(self):
+		supplier_name = "NO Test Supplier Bridge IR"
+		item_code = "NO-BRIDGE-INV-ITEM-PR"
+		company = frappe.db.get_single_value("Global Defaults", "default_company") or frappe.db.get_value(
+			"Company", {}, "name"
+		)
+		warehouse = frappe.db.get_value("Warehouse", {"is_group": 0}, "name")
+		supplier_group = frappe.db.get_value("Supplier Group", {}, "name")
+		item_group = frappe.db.get_value("Item Group", {"is_group": 0}, "name")
+		stock_uom = frappe.db.get_value("UOM", {}, "name")
+
+		if not frappe.db.exists("Supplier", supplier_name):
+			frappe.get_doc(
+				{
+					"doctype": "Supplier",
+					"supplier_name": supplier_name,
+					"supplier_group": supplier_group,
+				}
+			).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("Item", item_code):
+			frappe.get_doc(
+				{
+					"doctype": "Item",
+					"item_code": item_code,
+					"item_name": "NO Bridge Inventory Item PR",
+					"item_group": item_group,
+					"stock_uom": stock_uom,
+					"is_stock_item": 1,
+					"is_purchase_item": 1,
+				}
+			).insert(ignore_permissions=True)
+
+		result = create_erpnext_target_from_operational(
+			"Inventory Receipt",
+			"Purchase Receipt",
+			doc={
+				"doctype": "Inventory Receipt",
+				"code": "IR-CREATE-PR-001",
+				"dated": "2026-04-23",
+				"supplier": supplier_name,
+				"unit_of_measure": stock_uom,
+				"units": 12,
+				"subunits_per_unit": 1,
+				"unit_cost": 75,
+				"total_cost": 900,
+				"amount_paid": 0,
+			},
+			item_code=item_code,
+			company=company,
+			warehouse=warehouse,
+		)
+
+		self.assertEqual(result["target_doctype"], "Purchase Receipt")
+		self.assertEqual(result["docstatus"], 0)
+		self.assertTrue(frappe.db.exists("Purchase Receipt", result["name"]))
+
+	def test_creates_purchase_invoice_draft_from_inventory_receipt(self):
+		supplier_name = "NO Test Supplier Bridge IPI"
+		item_code = "NO-BRIDGE-INV-ITEM-PI"
+		company = frappe.db.get_single_value("Global Defaults", "default_company") or frappe.db.get_value(
+			"Company", {}, "name"
+		)
+		supplier_group = frappe.db.get_value("Supplier Group", {}, "name")
+		item_group = frappe.db.get_value("Item Group", {"is_group": 0}, "name")
+		stock_uom = frappe.db.get_value("UOM", {}, "name")
+
+		if not frappe.db.exists("Supplier", supplier_name):
+			frappe.get_doc(
+				{
+					"doctype": "Supplier",
+					"supplier_name": supplier_name,
+					"supplier_group": supplier_group,
+				}
+			).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("Item", item_code):
+			frappe.get_doc(
+				{
+					"doctype": "Item",
+					"item_code": item_code,
+					"item_name": "NO Bridge Inventory Item PI",
+					"item_group": item_group,
+					"stock_uom": stock_uom,
+					"is_stock_item": 1,
+					"is_purchase_item": 1,
+				}
+			).insert(ignore_permissions=True)
+
+		result = create_erpnext_target_from_operational(
+			"Inventory Receipt",
+			"Purchase Invoice",
+			doc={
+				"doctype": "Inventory Receipt",
+				"code": "IR-CREATE-PI-001",
+				"dated": "2026-04-23",
+				"supplier": supplier_name,
+				"unit_of_measure": stock_uom,
+				"units": 8,
+				"subunits_per_unit": 1,
+				"unit_cost": 50,
+				"total_cost": 400,
+				"amount_paid": 0,
+			},
+			item_code=item_code,
+			company=company,
+		)
+
+		self.assertEqual(result["target_doctype"], "Purchase Invoice")
+		self.assertEqual(result["docstatus"], 0)
+		self.assertTrue(frappe.db.exists("Purchase Invoice", result["name"]))
