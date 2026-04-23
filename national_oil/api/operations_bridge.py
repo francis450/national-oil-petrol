@@ -84,6 +84,10 @@ def _get_item_default_warehouse(item_code):
 	)
 
 
+def _is_stock_item(item_code):
+	return bool(frappe.db.get_value("Item", item_code, "is_stock_item")) if item_code else False
+
+
 def _build_fuel_purchase_purchase_receipt_payload(doc, company=None, warehouse=None, item_code=None):
 	resolved_item_code = item_code or _find_item_code(
 		getattr(doc, "item_code", None),
@@ -129,6 +133,50 @@ def _build_fuel_purchase_purchase_receipt_payload(doc, company=None, warehouse=N
 		"remarks": f"Mapped from Fuel Purchase {getattr(doc, 'name', 'unsaved')} / {doc.code}",
 	}
 	return payload, unresolved
+
+
+def _build_sales_entry_sales_invoice_payload(doc, company=None):
+	resolved_company = company or getattr(doc, "company", None) or _get_default_company()
+	unresolved = []
+
+	item_rows = _sales_entry_items(doc)
+	unresolved.extend([msg for row in item_rows for msg in row.pop("unresolved_dependencies", [])])
+
+	if not getattr(doc, "customer", None):
+		unresolved.append("Customer is required to create a Sales Invoice.")
+	if not resolved_company:
+		unresolved.append("No ERPNext Company could be resolved for this sales entry.")
+
+	if not item_rows:
+		item_rows = [
+			{
+				"item_code": None,
+				"qty": 1,
+				"rate": flt(doc.amount),
+				"amount": flt(doc.amount),
+				"description": f"Operational {doc.sale_type} sale captured from Sales Entry",
+			}
+		]
+		unresolved.append("Sales Entry has no line items; a canonical ERPNext Item is still required for posting.")
+
+	for row in item_rows:
+		item_code = row.get("item_code")
+		if item_code and _is_stock_item(item_code):
+			row.setdefault("warehouse", _get_item_default_warehouse(item_code))
+			if not row.get("warehouse"):
+				unresolved.append(f"No ERPNext Warehouse could be resolved for stock item {item_code}.")
+
+	sales_invoice = {
+		"doctype": "Sales Invoice",
+		"customer": getattr(doc, "customer", None),
+		"posting_date": doc.dated,
+		"company": resolved_company,
+		"is_pos": 0 if getattr(doc, "payment_method", None) == "Credit" else 1,
+		"update_stock": 0,
+		"items": item_rows,
+		"remarks": f"Mapped from Sales Entry {getattr(doc, 'name', 'unsaved')}",
+	}
+	return sales_invoice, unresolved
 
 
 def _fuel_purchase_targets(doc):
@@ -287,40 +335,14 @@ def _sales_entry_items(doc):
 
 
 def _sales_entry_targets(doc):
-	item_rows = _sales_entry_items(doc)
-	unresolved = [msg for row in item_rows for msg in row.pop("unresolved_dependencies", [])]
-
-	if not item_rows:
-		item_rows = [
-			{
-				"item_code": None,
-				"qty": 1,
-				"rate": flt(doc.amount),
-				"amount": flt(doc.amount),
-				"description": f"Operational {doc.sale_type} sale captured from Sales Entry",
-			}
-		]
-		unresolved.append("Sales Entry has no line items; a canonical ERPNext Item is still required for posting.")
-
-	sales_invoice = {
-		"doctype": "Sales Invoice",
-		"customer": getattr(doc, "customer", None),
-		"posting_date": doc.dated,
-		"is_pos": 0 if getattr(doc, "payment_method", None) == "Credit" else 1,
-		"items": item_rows,
-		"remarks": f"Mapped from Sales Entry {getattr(doc, 'name', 'unsaved')}",
-	}
+	sales_invoice, unresolved = _build_sales_entry_sales_invoice_payload(doc)
 
 	targets = [
 		{
 			"target_doctype": "Sales Invoice",
 			"recommended": True,
 			"payload": sales_invoice,
-			"unresolved_dependencies": unresolved + (
-				["Customer is required to create a Sales Invoice."]
-				if not getattr(doc, "customer", None)
-				else []
-			),
+			"unresolved_dependencies": unresolved,
 		}
 	]
 
@@ -407,6 +429,11 @@ def create_erpnext_target_from_operational(
 			company=company,
 			warehouse=warehouse,
 			item_code=item_code,
+		)
+	elif source_doctype == "Sales Entry" and target_doctype == "Sales Invoice":
+		payload, unresolved = _build_sales_entry_sales_invoice_payload(
+			source_doc,
+			company=company,
 		)
 	else:
 		frappe.throw(

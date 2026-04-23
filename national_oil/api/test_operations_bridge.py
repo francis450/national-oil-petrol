@@ -126,3 +126,65 @@ class TestOperationsBridge(FrappeTestCase):
 		self.assertEqual(result["target_doctype"], "Purchase Receipt")
 		self.assertEqual(result["docstatus"], 0)
 		self.assertTrue(frappe.db.exists("Purchase Receipt", result["name"]))
+
+	def test_creates_sales_invoice_draft_from_sales_entry(self):
+		customer_name = "NO Test Customer Bridge"
+		item_code = "NO-BRIDGE-SALES-ITEM"
+		company = frappe.db.get_single_value("Global Defaults", "default_company") or frappe.db.get_value(
+			"Company", {}, "name"
+		)
+		customer_group = frappe.db.get_value("Customer Group", {}, "name")
+		territory = frappe.db.get_value("Territory", {}, "name")
+		item_group = frappe.db.get_value("Item Group", {"is_group": 0}, "name")
+		stock_uom = frappe.db.get_value("UOM", {}, "name")
+
+		if not frappe.db.exists("Customer", customer_name):
+			frappe.get_doc(
+				{
+					"doctype": "Customer",
+					"customer_name": customer_name,
+					"customer_group": customer_group,
+					"territory": territory,
+				}
+			).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("Item", item_code):
+			frappe.get_doc(
+				{
+					"doctype": "Item",
+					"item_code": item_code,
+					"item_name": "NO Bridge Sales Item",
+					"item_group": item_group,
+					"stock_uom": stock_uom,
+					"is_stock_item": 0,
+					"is_sales_item": 1,
+				}
+			).insert(ignore_permissions=True)
+
+		result = create_erpnext_target_from_operational(
+			"Sales Entry",
+			"Sales Invoice",
+			doc={
+				"doctype": "Sales Entry",
+				"dated": "2026-04-23",
+				"department": "Forecourt",
+				"sale_type": "Other",
+				"amount": 3500,
+				"payment_method": "Cash",
+				"customer": customer_name,
+				"items": [
+					{
+						"doctype": "Sales Item",
+						"product": item_code,
+						"quantity": 1,
+						"unit_price": 3500,
+						"total_amount": 3500,
+					}
+				],
+			},
+			company=company,
+		)
+
+		self.assertEqual(result["target_doctype"], "Sales Invoice")
+		self.assertEqual(result["docstatus"], 0)
+		self.assertTrue(frappe.db.exists("Sales Invoice", result["name"]))
