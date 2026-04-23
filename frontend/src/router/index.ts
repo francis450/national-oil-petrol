@@ -91,6 +91,25 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: '/inventory',
+    name: 'Inventory',
+    component: () => import('@/views/inventory/InventoryLayout.vue'),
+    meta: { requiresAuth: true, layout: 'app' },
+    redirect: '/inventory/receipts',
+    children: [
+      {
+        path: 'receipts',
+        name: 'InventoryReceipts',
+        component: () => import('@/views/inventory/InventoryReceiptListView.vue'),
+      },
+      {
+        path: 'products',
+        name: 'Products',
+        component: () => import('@/views/inventory/ProductListView.vue'),
+      },
+    ],
+  },
 ]
 
 const router = createRouter({

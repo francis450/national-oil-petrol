@@ -26,6 +26,22 @@ export interface SalesEntryRow {
   docstatus: number
 }
 
+export interface InventoryReceiptRow {
+  name: string
+  code: string
+  dated: string
+  supplier: string
+  product?: string
+  brand?: string
+  units: number
+  unit_cost: number
+  total_cost: number
+  amount_paid: number
+  balance: number
+  payment_method?: string
+  docstatus: number
+}
+
 export interface BridgeTarget {
   target_doctype: string
   recommended: boolean
@@ -62,6 +78,22 @@ const salesEntryFields = [
   'amount',
   'payment_method',
   'customer',
+  'docstatus',
+]
+
+const inventoryReceiptFields = [
+  'name',
+  'code',
+  'dated',
+  'supplier',
+  'product',
+  'brand',
+  'units',
+  'unit_cost',
+  'total_cost',
+  'amount_paid',
+  'balance',
+  'payment_method',
   'docstatus',
 ]
 
@@ -120,6 +152,36 @@ export const operationsBridgeApi = {
   async createSalesEntryTarget(name: string, targetDoctype: 'Sales Invoice') {
     const response = await apiClient.post('/api/method/national_oil.api.operations_bridge.create_erpnext_target_from_operational', {
       source_doctype: 'Sales Entry',
+      target_doctype: targetDoctype,
+      docname: name,
+    })
+    return response.data.message as { target_doctype: string; name: string; docstatus: number }
+  },
+
+  async listInventoryReceipts() {
+    const response = await apiClient.get('/api/resource/Inventory Receipt', {
+      params: {
+        fields: JSON.stringify(inventoryReceiptFields),
+        limit_page_length: 50,
+        order_by: 'dated desc',
+      },
+    })
+    return response.data.data as InventoryReceiptRow[]
+  },
+
+  async previewInventoryReceiptMapping(name: string) {
+    const response = await apiClient.get('/api/method/national_oil.api.operations_bridge.preview_erpnext_mapping', {
+      params: {
+        source_doctype: 'Inventory Receipt',
+        docname: name,
+      },
+    })
+    return response.data.message as BridgePreview
+  },
+
+  async createInventoryReceiptTarget(name: string, targetDoctype: 'Purchase Receipt' | 'Purchase Invoice') {
+    const response = await apiClient.post('/api/method/national_oil.api.operations_bridge.create_erpnext_target_from_operational', {
+      source_doctype: 'Inventory Receipt',
       target_doctype: targetDoctype,
       docname: name,
     })

@@ -87,21 +87,21 @@
     <!-- Divider -->
     <div class="my-4 border-t border-gray-800"></div>
 
-    <!-- Inventory -->
-    <router-link
-      to="/inventory"
-      :class="[
-        'group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-        isActive('/inventory') 
-          ? 'bg-deepseek-blue bg-opacity-20 text-deepseek-blue border-l-4 border-deepseek-blue' 
-          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-300'
-      ]"
+    <!-- Inventory (Collapsible) -->
+    <SidebarMenuGroup 
+      :label="'Inventory'" 
+      :expanded="expandedGroups.inventory"
+      @toggle="toggleGroup('inventory')"
     >
-      <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
-      </svg>
-      Inventory
-    </router-link>
+      <router-link to="/inventory/receipts" class="menu-subitem">
+        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
+        Inventory Receipts
+      </router-link>
+      <router-link to="/inventory/products" class="menu-subitem">
+        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
+        Products
+      </router-link>
+    </SidebarMenuGroup>
 
     <!-- Finance -->
     <router-link
@@ -165,6 +165,7 @@ const expandedGroups = ref({
   sales: false,
   receivables: false,
   payables: false,
+  inventory: false,
 })
 
 const toggleGroup = (group: keyof typeof expandedGroups.value) => {

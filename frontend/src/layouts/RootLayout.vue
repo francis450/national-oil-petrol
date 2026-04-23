@@ -76,6 +76,8 @@ const getPageTitle = () => {
     '/receivables/payments': 'Debt Payments',
     '/payables/credits': 'Supplier Credits',
     '/payables/payments': 'Credit Payments',
+    '/inventory/receipts': 'Inventory Receipts',
+    '/inventory/products': 'Products',
   }
   return titles[router.currentRoute.value.path] || 'National Oil'
 }
