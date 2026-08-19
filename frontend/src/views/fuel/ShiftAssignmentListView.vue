@@ -105,6 +105,9 @@
             <option value="">— Select —</option>
             <option v-for="emp in employeeOptions" :key="emp.name" :value="emp.name">{{ emp.label || emp.employee_name }}</option>
           </select>
+          <p v-if="!formOptionsLoading && employeeOptions.length === 0" class="text-xs text-yellow-300 mt-1">
+            No attendants loaded — try Refresh below, or reload the page.
+          </p>
         </div>
         <div>
           <label class="block text-sm text-gray-400 mb-1">Shift Type <span class="text-red-400">*</span></label>
@@ -115,7 +118,19 @@
             <option value="">— Select —</option>
             <option v-for="st in shiftTypeOptions" :key="st.name" :value="st.name">{{ st.name }}</option>
           </select>
+          <p v-if="!formOptionsLoading && shiftTypeOptions.length === 0" class="text-xs text-yellow-300 mt-1">
+            No shift types loaded — try Refresh below, or reload the page.
+          </p>
         </div>
+        <button
+          type="button"
+          @click="loadFormOptions"
+          :disabled="formOptionsLoading"
+          class="text-xs text-gray-400 hover:text-gray-200 underline disabled:opacity-40"
+        >
+          {{ formOptionsLoading ? 'Refreshing options...' : 'Refresh attendant/shift type options' }}
+        </button>
+        <p v-if="formOptionsError" class="text-xs text-red-300">{{ formOptionsError }}</p>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm text-gray-400 mb-1">Start Date <span class="text-red-400">*</span></label>
@@ -200,20 +215,40 @@ const loadShifts = async () => {
 const employeeOptions = ref<EmployeeRow[]>([])
 const shiftTypeOptions = ref<ShiftTypeRow[]>([])
 const companyOptions = ref<CompanyRow[]>([])
+const formOptionsLoading = ref(false)
+const formOptionsError = ref('')
 
 const loadFormOptions = async () => {
-  try {
-    const [employees, shiftTypes, companies] = await Promise.all([
-      workforceApi.listEmployees(),
-      workforceApi.listShiftTypes(),
-      workforceApi.listCompanies(),
-    ])
-    employeeOptions.value = employees.filter((emp) => emp.status === 'Active' || !emp.status)
-    shiftTypeOptions.value = shiftTypes
-    companyOptions.value = companies
-  } catch (error) {
-    // Non-fatal — the create form still works if the attendant/manager types a valid name.
+  formOptionsLoading.value = true
+  formOptionsError.value = ''
+  const [employees, shiftTypes, companies] = await Promise.allSettled([
+    workforceApi.listEmployees(),
+    workforceApi.listShiftTypes(),
+    workforceApi.listCompanies(),
+  ])
+
+  const errors: string[] = []
+
+  if (employees.status === 'fulfilled') {
+    employeeOptions.value = employees.value.filter((emp) => emp.status === 'Active' || !emp.status)
+  } else {
+    errors.push(`Attendants: ${employees.reason?.response?.data?.message || employees.reason?.message || 'failed to load'}`)
   }
+
+  if (shiftTypes.status === 'fulfilled') {
+    shiftTypeOptions.value = shiftTypes.value
+  } else {
+    errors.push(`Shift types: ${shiftTypes.reason?.response?.data?.message || shiftTypes.reason?.message || 'failed to load'}`)
+  }
+
+  if (companies.status === 'fulfilled') {
+    companyOptions.value = companies.value
+  } else {
+    errors.push(`Company: ${companies.reason?.response?.data?.message || companies.reason?.message || 'failed to load'}`)
+  }
+
+  formOptionsError.value = errors.join(' | ')
+  formOptionsLoading.value = false
 }
 
 const showForm = ref(false)
