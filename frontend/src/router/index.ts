@@ -50,6 +50,11 @@ const routes: RouteRecordRaw[] = [
         name: 'PumpReadings',
         component: () => import('@/views/fuel/PumpReadingListView.vue'),
       },
+      {
+        path: 'shifts',
+        name: 'ShiftAssignments',
+        component: () => import('@/views/fuel/ShiftAssignmentListView.vue'),
+      },
     ],
   },
   {
@@ -217,9 +222,12 @@ router.beforeEach(async (to, from, next) => {
   }
   // Block direct navigation into a module hidden from this user's role
   else if (authStore.isAuthenticated) {
+    const { canAccessModule, isPumpAttendantOnly } = usePermissions()
     const restrictedPrefix = Object.keys(MODULE_BY_PATH_PREFIX).find((prefix) => to.path.startsWith(prefix))
-    const { canAccessModule } = usePermissions()
     if (restrictedPrefix && !canAccessModule(MODULE_BY_PATH_PREFIX[restrictedPrefix])) {
+      next('/')
+    } else if (to.path.startsWith('/fuel/shifts') && isPumpAttendantOnly.value) {
+      // Shift Assignment management is a manager action, not part of the attendant's own workflow
       next('/')
     } else {
       next()

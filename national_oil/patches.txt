@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 national_oil.patches.v1_0.add_shift_assignment_fields
 national_oil.patches.v1_0.retire_no_employee_doctypes
+national_oil.patches.v1_1.grant_shift_assignment_permissions

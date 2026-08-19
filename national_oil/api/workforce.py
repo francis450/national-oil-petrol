@@ -49,8 +49,24 @@ ALLOWED_WORKFORCE_DOCTYPES = {
 	},
 	"Shift Assignment": {
 		"label_field_candidates": ["employee_name", "employee", "name"],
-		"fields": ["name", "employee", "employee_name", "shift_type", "start_date", "end_date", "status"],
+		"fields": [
+			"name",
+			"employee",
+			"employee_name",
+			"shift_type",
+			"start_date",
+			"end_date",
+			"status",
+			"reconciliation_status",
+			"total_expected_sales",
+			"closed_at",
+		],
 		"search_fields": ["name", "employee", "employee_name", "shift_type", "status"],
+	},
+	"Company": {
+		"label_field_candidates": ["company_name", "name"],
+		"fields": ["name", "company_name"],
+		"search_fields": ["name", "company_name"],
 	},
 }
 

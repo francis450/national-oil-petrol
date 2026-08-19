@@ -30,6 +30,10 @@
         <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
         Pump Readings
       </router-link>
+      <router-link v-if="!isPumpAttendantOnly" to="/fuel/shifts" class="menu-subitem">
+        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
+        Shift Assignments
+      </router-link>
       <router-link to="/fuel/prices" class="menu-subitem">
         <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
         Fuel Prices
@@ -158,7 +162,7 @@ import SidebarMenuGroup from './SidebarMenuGroup.vue'
 import { usePermissions } from '@/composables/usePermissions'
 
 const route = useRoute()
-const { canAccessModule } = usePermissions()
+const { canAccessModule, isPumpAttendantOnly } = usePermissions()
 
 const expandedGroups = ref({
   fuel: false,

@@ -28,6 +28,12 @@ fixtures = [
             ["dt", "=", "Shift Assignment"],
         ],
     },
+    {
+        "doctype": "Custom DocPerm",
+        "filters": [
+            ["parent", "=", "Shift Assignment"],
+        ],
+    },
 ]
 
 # Document Events

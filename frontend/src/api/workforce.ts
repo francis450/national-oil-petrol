@@ -36,13 +36,48 @@ export interface LeaveApplicationRow {
   label?: string
 }
 
+export interface ShiftTypeRow {
+  name: string
+  start_time?: string
+  end_time?: string
+  enable_auto_attendance?: number
+  disabled?: number
+  doctype: 'Shift Type'
+  label?: string
+}
+
+export interface ShiftAssignmentRow {
+  name: string
+  employee?: string
+  employee_name?: string
+  shift_type?: string
+  start_date: string
+  end_date?: string
+  status?: string
+  reconciliation_status?: 'Open' | 'Closed' | 'Verified'
+  total_expected_sales?: number
+  closed_at?: string
+  doctype: 'Shift Assignment'
+  label?: string
+}
+
+export interface CompanyRow {
+  name: string
+  company_name?: string
+  doctype: 'Company'
+  label?: string
+}
+
 interface ListWorkforceResponse<T> {
   doctype: string
   count: number
   records: T[]
 }
 
-const listWorkforceRecords = async <T>(doctype: 'Employee' | 'Attendance' | 'Leave Application', params: Record<string, any> = {}) => {
+const listWorkforceRecords = async <T>(
+  doctype: 'Employee' | 'Attendance' | 'Leave Application' | 'Shift Type' | 'Shift Assignment' | 'Company',
+  params: Record<string, any> = {},
+) => {
   const response = await apiClient.get('/api/method/national_oil.api.workforce.list_workforce_records', {
     params: {
       doctype,
@@ -69,5 +104,20 @@ export const workforceApi = {
     return await listWorkforceRecords<LeaveApplicationRow>('Leave Application', {
       ...(status ? { status } : {}),
     })
+  },
+
+  async listShiftTypes() {
+    return await listWorkforceRecords<ShiftTypeRow>('Shift Type')
+  },
+
+  async listShiftAssignments(status?: string) {
+    return await listWorkforceRecords<ShiftAssignmentRow>('Shift Assignment', {
+      ...(status ? { status } : {}),
+      limit_page_length: 100,
+    })
+  },
+
+  async listCompanies() {
+    return await listWorkforceRecords<CompanyRow>('Company')
   },
 }
