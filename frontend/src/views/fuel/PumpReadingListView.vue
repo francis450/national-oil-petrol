@@ -313,6 +313,7 @@ import {
   type PumpReadingSummary,
 } from '@/api/fuel'
 import SlideOver from '@/components/common/SlideOver.vue'
+import { extractErrorMessage } from '@/utils/error'
 
 const summary = ref<PumpReadingSummary>({
   count: 0,
@@ -341,7 +342,7 @@ const loadReadings = async () => {
       selectedReading.value = summary.value.rows[0]
     }
   } catch (error: any) {
-    pageError.value = error?.response?.data?.message || error?.message || 'Failed to load pump readings.'
+    pageError.value = extractErrorMessage(error)
   } finally {
     loading.value = false
   }
@@ -403,7 +404,7 @@ const saveOpenForm = async () => {
     showOpenForm.value = false
     await Promise.all([loadReadings(), loadShiftContext()])
   } catch (e: any) {
-    openError.value = e?.response?.data?.message || e?.message || 'Failed to open pump reading.'
+    openError.value = extractErrorMessage(e)
   } finally {
     opening.value = false
   }
@@ -438,7 +439,7 @@ const saveCloseForm = async () => {
     showCloseForm.value = false
     await Promise.all([loadReadings(), loadShiftContext()])
   } catch (e: any) {
-    closeError.value = e?.response?.data?.message || e?.message || 'Failed to close pump reading.'
+    closeError.value = extractErrorMessage(e)
   } finally {
     closing.value = false
   }

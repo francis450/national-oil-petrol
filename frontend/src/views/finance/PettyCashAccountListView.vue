@@ -147,6 +147,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { financeApi, type PettyCashAccountRow } from '@/api/finance'
+import { extractErrorMessage } from '@/utils/error'
 
 const accounts = ref<PettyCashAccountRow[]>([])
 const selectedAccount = ref<PettyCashAccountRow | null>(null)
@@ -171,7 +172,7 @@ const loadAccounts = async () => {
       selectedAccount.value = accounts.value[0]
     }
   } catch (error: any) {
-    pageError.value = error?.response?.data?.message || error?.message || 'Failed to load petty cash accounts.'
+    pageError.value = extractErrorMessage(error)
   } finally {
     loading.value = false
   }
@@ -191,7 +192,7 @@ const replenish = async () => {
     await loadAccounts()
     selectedAccount.value = accounts.value.find((a) => a.name === selectedAccount.value?.name) || selectedAccount.value
   } catch (error: any) {
-    replenishError.value = error?.response?.data?.message || error?.message || 'Failed to replenish account.'
+    replenishError.value = extractErrorMessage(error)
   } finally {
     replenishing.value = false
   }

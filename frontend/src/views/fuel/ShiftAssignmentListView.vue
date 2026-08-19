@@ -181,6 +181,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { workforceApi, type CompanyRow, type EmployeeRow, type ShiftAssignmentRow, type ShiftTypeRow } from '@/api/workforce'
 import SlideOver from '@/components/common/SlideOver.vue'
 import { apiClient } from '@/api/client'
+import { extractErrorMessage } from '@/utils/error'
 
 const shifts = ref<ShiftAssignmentRow[]>([])
 const loading = ref(false)
@@ -290,7 +291,7 @@ const saveForm = async () => {
     showForm.value = false
     await loadShifts()
   } catch (e: any) {
-    createError.value = e?.response?.data?.message || e?.message || 'Failed to create shift assignment.'
+    createError.value = extractErrorMessage(e)
   } finally {
     creating.value = false
   }
