@@ -6,16 +6,26 @@
  "engine": "InnoDB",
  "field_order": [
   "dated",
-  "pump_number",
-  "fuel_type",
+  "shift",
+  "nozzle_no",
   "col_break_1",
+  "pump_number",
+  "pump_no",
+  "fuel_type",
+  "section_meter",
   "opening_reading",
   "closing_reading",
+  "meter_rollover",
+  "meter_rollover_limit",
+  "col_break_2",
   "variance",
+  "unit_price",
+  "expected_sales_amount",
   "section_staff",
   "attendant",
   "department",
-  "notes"
+  "notes",
+  "amended_from"
  ],
  "fields": [
   {
@@ -27,11 +37,35 @@
    "reqd": 1
   },
   {
+   "fieldname": "shift",
+   "fieldtype": "Link",
+   "options": "Shift Assignment",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Shift",
+   "reqd": 1
+  },
+  {
+   "fieldname": "nozzle_no",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Nozzle No",
+   "reqd": 1
+  },
+  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
    "fieldname": "pump_number",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Pump Number",
-   "reqd": 1
+   "read_only": 1,
+   "description": "Derived from Nozzle No."
+  },
+  {
+   "fieldname": "pump_no",
+   "fieldtype": "Select",
+   "options": "1\n2\n3\n4",
+   "label": "Pump No",
+   "read_only": 1
   },
   {
    "fieldname": "fuel_type",
@@ -41,7 +75,11 @@
    "options": "Fuel Type",
    "reqd": 1
   },
-  {"fieldname": "col_break_1", "fieldtype": "Column Break"},
+  {
+   "fieldname": "section_meter",
+   "fieldtype": "Section Break",
+   "label": "Meter Readings"
+  },
   {
    "fieldname": "opening_reading",
    "fieldtype": "Float",
@@ -54,14 +92,40 @@
    "fieldtype": "Float",
    "label": "Closing Reading",
    "precision": "2",
-   "reqd": 1
+   "description": "Required to submit; may be left blank while the shift is still open."
   },
+  {
+   "fieldname": "meter_rollover",
+   "fieldtype": "Check",
+   "label": "Meter Rollover",
+   "description": "Tick if the physical meter rolled over past its limit during this shift."
+  },
+  {
+   "fieldname": "meter_rollover_limit",
+   "fieldtype": "Float",
+   "label": "Rollover Limit",
+   "precision": "2",
+   "depends_on": "eval:doc.meter_rollover"
+  },
+  {"fieldname": "col_break_2", "fieldtype": "Column Break"},
   {
    "fieldname": "variance",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Variance (L)",
+   "label": "Litres Sold",
    "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unit_price",
+   "fieldtype": "Currency",
+   "label": "Unit Price"
+  },
+  {
+   "fieldname": "expected_sales_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Expected Sales",
    "read_only": 1
   },
   {
@@ -86,24 +150,34 @@
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "label": "Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Pump Reading",
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
+ "is_submittable": 1,
  "links": [],
- "modified": "2026-04-11 00:00:00.000000",
+ "modified": "2026-08-19 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Fuel Operations",
  "name": "Pump Reading",
  "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
-  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
-  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
-  {"role": "Pump Attendant", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Pump Attendant", "read": 1, "write": 1, "create": 1, "submit": 1},
   {"role": "Accountant", "read": 1}
  ],
  "sort_field": "dated",
  "sort_order": "DESC",
  "states": [],
  "title_field": "pump_number",
- "track_changes": 0
+ "track_changes": 1
 }

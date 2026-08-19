@@ -209,7 +209,7 @@ export const REPORTS: ReportConfig[] = [
         default: thisMonth(),
         required: true,
       },
-      { name: 'employee', label: 'Employee', type: 'Link', options: 'NO Employee' },
+      { name: 'employee', label: 'Employee', type: 'Link', options: 'Employee' },
     ],
   },
   {
@@ -217,7 +217,7 @@ export const REPORTS: ReportConfig[] = [
     name: 'Performance Report',
     category: 'HR',
     filters: [
-      { name: 'employee', label: 'Employee', type: 'Link', options: 'NO Employee' },
+      { name: 'employee', label: 'Employee', type: 'Link', options: 'Employee' },
       { name: 'from_date', label: 'From Date', type: 'Date', default: monthStart() },
       { name: 'to_date', label: 'To Date', type: 'Date', default: today() },
     ],
@@ -228,7 +228,7 @@ export const REPORTS: ReportConfig[] = [
     category: 'HR',
     filters: [
       { name: 'year', label: 'Year', type: 'Int', default: thisYear() },
-      { name: 'employee', label: 'Employee', type: 'Link', options: 'NO Employee' },
+      { name: 'employee', label: 'Employee', type: 'Link', options: 'Employee' },
       { name: 'status', label: 'Status', type: 'Select', options: '\nPending\nApproved\nRejected' },
     ],
   },

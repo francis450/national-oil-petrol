@@ -17,6 +17,13 @@
   "notes",
   "section_items",
   "items",
+  "section_shift",
+  "shift",
+  "variance_from_pump_reading",
+  "col_break_3",
+  "verification_status",
+  "verified_by",
+  "verified_on",
   "amended_from"
  ],
  "fields": [
@@ -94,6 +101,47 @@
    "options": "Sales Item"
   },
   {
+   "collapsible": 1,
+   "fieldname": "section_shift",
+   "fieldtype": "Section Break",
+   "label": "Shift Reconciliation"
+  },
+  {
+   "fieldname": "shift",
+   "fieldtype": "Link",
+   "label": "Shift",
+   "options": "Shift Assignment"
+  },
+  {
+   "fieldname": "variance_from_pump_reading",
+   "fieldtype": "Currency",
+   "label": "Variance from Pump Reading",
+   "read_only": 1,
+   "description": "amount - Shift Assignment.total_expected_sales. Informational only, never blocks saving."
+  },
+  {"fieldname": "col_break_3", "fieldtype": "Column Break"},
+  {
+   "fieldname": "verification_status",
+   "fieldtype": "Select",
+   "label": "Verification Status",
+   "options": "Pending\nVerified\nDisputed",
+   "default": "Pending",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "verified_by",
+   "fieldtype": "Link",
+   "label": "Verified By",
+   "options": "Employee",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "verified_on",
+   "fieldtype": "Datetime",
+   "label": "Verified On",
+   "permlevel": 1
+  },
+  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -113,10 +161,14 @@
  "owner": "Administrator",
  "permissions": [
   {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "System Manager", "permlevel": 1, "read": 1, "write": 1},
   {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
-  {"role": "Pump Attendant", "read": 1, "write": 1, "create": 1, "submit": 1},
+  {"role": "Station Manager", "permlevel": 1, "read": 1, "write": 1},
+  {"role": "Pump Attendant", "read": 1},
+  {"role": "Pump Attendant", "permlevel": 1, "read": 1, "write": 1},
   {"role": "Cashier", "read": 1, "write": 1, "create": 1, "submit": 1},
-  {"role": "Accountant", "read": 1}
+  {"role": "Accountant", "read": 1, "write": 1, "create": 1, "submit": 1},
+  {"role": "Accountant", "permlevel": 1, "read": 1, "write": 1}
  ],
  "sort_field": "dated",
  "sort_order": "DESC",

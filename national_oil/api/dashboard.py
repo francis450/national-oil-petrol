@@ -9,6 +9,10 @@ def _doctype_exists(doctype):
 	return bool(frappe.db.exists("DocType", doctype))
 
 
+def _can_read(doctype):
+	return _doctype_exists(doctype) and frappe.has_permission(doctype, "read")
+
+
 def _sum_field(doctype, fieldname, filters=None):
 	if not _doctype_exists(doctype):
 		return 0
@@ -27,6 +31,9 @@ def _month_start(date_value=None):
 
 
 def _sales_totals():
+	if not _can_read("Sales Invoice"):
+		return 0, 0
+
 	current_day = today()
 	month_start = _month_start(current_day)
 
@@ -45,13 +52,17 @@ def _sales_totals():
 
 def _outstanding_summary():
 	return {
-		"receivables": _sum_field("Sales Invoice", "outstanding_amount", {"docstatus": 1}),
-		"payables": _sum_field("Purchase Invoice", "outstanding_amount", {"docstatus": 1}),
+		"receivables": _sum_field("Sales Invoice", "outstanding_amount", {"docstatus": 1})
+		if _can_read("Sales Invoice")
+		else 0,
+		"payables": _sum_field("Purchase Invoice", "outstanding_amount", {"docstatus": 1})
+		if _can_read("Purchase Invoice")
+		else 0,
 	}
 
 
 def _stock_summary():
-	if not frappe.db.table_exists("Bin") or not _doctype_exists("Item"):
+	if not frappe.db.table_exists("Bin") or not _can_read("Item"):
 		return {"total_qty": 0, "levels": []}
 
 	rows = frappe.db.sql(
@@ -99,7 +110,7 @@ def _stock_summary():
 
 
 def _attendance_summary():
-	if not _doctype_exists("Attendance"):
+	if not _can_read("Attendance"):
 		return [{"label": "Present", "value": 0}, {"label": "Absent", "value": 0}]
 
 	rows = frappe.db.sql(
@@ -132,7 +143,7 @@ def _pipeline_summary():
 		rows.append(
 			{
 				"label": doctype,
-				"value": _count_docs(doctype),
+				"value": _count_docs(doctype) if _can_read(doctype) else 0,
 				"color": colors.get(doctype, "bg-gray-500"),
 			}
 		)
@@ -142,7 +153,7 @@ def _pipeline_summary():
 def _settlement_summary():
 	current_day = today()
 	month_start = _month_start(current_day)
-	if not _doctype_exists("Payment Entry"):
+	if not _can_read("Payment Entry"):
 		return {"receipts_this_month": 0, "payments_this_month": 0}
 
 	rows = frappe.db.sql(
@@ -171,7 +182,7 @@ def get_sales_trend(days=7):
 	current_day = getdate(today())
 	start_date = add_days(current_day, -days + 1)
 
-	if not _doctype_exists("Sales Invoice"):
+	if not _can_read("Sales Invoice"):
 		return []
 
 	rows = frappe.db.sql(

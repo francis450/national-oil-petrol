@@ -37,8 +37,9 @@
     </SidebarMenuGroup>
 
     <!-- Sales (Collapsible) -->
-    <SidebarMenuGroup 
-      :label="'Sales'" 
+    <SidebarMenuGroup
+      v-if="canAccessModule('sales')"
+      :label="'Sales'"
       :expanded="expandedGroups.sales"
       @toggle="toggleGroup('sales')"
     >
@@ -52,25 +53,14 @@
       </router-link>
     </SidebarMenuGroup>
 
-    <!-- Receivables (Collapsible) -->
-    <SidebarMenuGroup 
-      :label="'Receivables'" 
-      :expanded="expandedGroups.receivables"
-      @toggle="toggleGroup('receivables')"
-    >
-      <router-link to="/receivables/debts" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Customer Debts
-      </router-link>
-      <router-link to="/receivables/payments" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Debt Payments
-      </router-link>
-    </SidebarMenuGroup>
+    <!-- Receivables: PARKED pending a credit-sales decision (see docs/ERP_REUSE_STRATEGY.md).
+         Hidden from nav for all roles, not just role-gated — routes are also blocked in the
+         router guard below. -->
 
     <!-- Payables (Collapsible) -->
-    <SidebarMenuGroup 
-      :label="'Payables'" 
+    <SidebarMenuGroup
+      v-if="canAccessModule('payables')"
+      :label="'Payables'"
       :expanded="expandedGroups.payables"
       @toggle="toggleGroup('payables')"
     >
@@ -88,8 +78,9 @@
     <div class="my-4 border-t border-gray-800"></div>
 
     <!-- Inventory (Collapsible) -->
-    <SidebarMenuGroup 
-      :label="'Inventory'" 
+    <SidebarMenuGroup
+      v-if="canAccessModule('inventory')"
+      :label="'Inventory'"
       :expanded="expandedGroups.inventory"
       @toggle="toggleGroup('inventory')"
     >
@@ -104,8 +95,9 @@
     </SidebarMenuGroup>
 
     <!-- Finance (Collapsible) -->
-    <SidebarMenuGroup 
-      :label="'Finance'" 
+    <SidebarMenuGroup
+      v-if="canAccessModule('finance')"
+      :label="'Finance'"
       :expanded="expandedGroups.finance"
       @toggle="toggleGroup('finance')"
     >
@@ -120,8 +112,9 @@
     </SidebarMenuGroup>
 
     <!-- HR (Collapsible) -->
-    <SidebarMenuGroup 
-      :label="'Human Resources'" 
+    <SidebarMenuGroup
+      v-if="canAccessModule('hr')"
+      :label="'Human Resources'"
       :expanded="expandedGroups.hr"
       @toggle="toggleGroup('hr')"
     >
@@ -141,11 +134,12 @@
 
     <!-- Reports -->
     <router-link
+      v-if="canAccessModule('reports')"
       to="/reports"
       :class="[
         'group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-        isActive('/reports') 
-          ? 'bg-deepseek-blue bg-opacity-20 text-deepseek-blue border-l-4 border-deepseek-blue' 
+        isActive('/reports')
+          ? 'bg-deepseek-blue bg-opacity-20 text-deepseek-blue border-l-4 border-deepseek-blue'
           : 'text-gray-400 hover:bg-gray-800 hover:text-gray-300'
       ]"
     >
@@ -161,13 +155,14 @@
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import SidebarMenuGroup from './SidebarMenuGroup.vue'
+import { usePermissions } from '@/composables/usePermissions'
 
 const route = useRoute()
+const { canAccessModule } = usePermissions()
 
 const expandedGroups = ref({
   fuel: false,
   sales: false,
-  receivables: false,
   payables: false,
   inventory: false,
   finance: false,

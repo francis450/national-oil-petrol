@@ -10,13 +10,13 @@ frappe.query_reports["Leave Register"] = {
 			fieldname: "employee",
 			label: __("Employee"),
 			fieldtype: "Link",
-			options: "NO Employee",
+			options: "Employee",
 		},
 		{
 			fieldname: "status",
 			label: __("Status"),
 			fieldtype: "Select",
-			options: "\nPending\nApproved\nRejected",
+			options: "\nOpen\nApproved\nRejected\nCancelled",
 		},
 	],
 };

@@ -6,6 +6,7 @@ from frappe.utils import today
 @frappe.whitelist()
 def get_sales_summary(from_date=None, to_date=None, department=None):
 	"""Aggregated sales with optional filters."""
+	frappe.has_permission("Sales Entry", "read", throw=True)
 	conditions = ["docstatus = 1"]
 	values = {}
 

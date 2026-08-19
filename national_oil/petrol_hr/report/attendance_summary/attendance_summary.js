@@ -20,7 +20,7 @@ frappe.query_reports["Attendance Summary"] = {
 			fieldname: "employee",
 			label: __("Employee"),
 			fieldtype: "Link",
-			options: "NO Employee",
+			options: "Employee",
 		},
 	],
 };

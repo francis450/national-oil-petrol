@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "creation": "2026-08-19 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "pump_number",
+  "nozzle_no",
+  "fuel_type",
+  "col_break_1",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "pump_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Pump Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "nozzle_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nozzle No",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fuel_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Fuel Type",
+   "options": "Fuel Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "default": "Pending",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending\nOpened\nClosed",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-19 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Fuel Operations",
+ "name": "Shift Assigned Pump",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

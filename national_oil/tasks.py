@@ -2,15 +2,24 @@ import frappe
 from frappe.utils import today
 
 
-def auto_settle_debts():
-	"""Mark Customer Debts and Supplier Credits as Settled when balance = 0."""
+def settle_supplier_credits():
+	"""Mark Supplier Credits as Settled when balance = 0. (Payables — stays active.)"""
 	frappe.db.sql("""
-		UPDATE `tabCustomer Debt`
+		UPDATE `tabSupplier Credit`
 		SET status = 'Settled'
 		WHERE docstatus = 1 AND balance <= 0 AND status != 'Settled'
 	""")
+
+
+def auto_settle_debts():
+	"""
+	PARKED pending a credit-sales decision (see docs/ERP_REUSE_STRATEGY.md). This used to also
+	settle Supplier Credit (Payables) — that half was split out into settle_supplier_credits(),
+	which stays scheduled, so parking Receivables doesn't also stop Payables automation.
+	Not wired into scheduler_events; kept here for when Receivables is unparked.
+	"""
 	frappe.db.sql("""
-		UPDATE `tabSupplier Credit`
+		UPDATE `tabCustomer Debt`
 		SET status = 'Settled'
 		WHERE docstatus = 1 AND balance <= 0 AND status != 'Settled'
 	""")
@@ -29,7 +38,11 @@ def refresh_sales_targets():
 
 
 def send_debt_reminders():
-	"""Email customers with open debts (stub — extend with email template)."""
+	"""
+	PARKED pending a credit-sales decision (see docs/ERP_REUSE_STRATEGY.md).
+	Not wired into scheduler_events; kept here for when Receivables is unparked.
+	Email customers with open debts (stub — extend with email template).
+	"""
 	open_debts = frappe.get_all(
 		"Customer Debt",
 		filters={"status": ("in", ["Open", "Partially Paid"]), "docstatus": 1},
@@ -47,7 +60,3 @@ def send_debt_reminders():
 				        f"Thank you.",
 			)
 
-
-def backup_report_snapshot():
-	"""Placeholder for monthly archive logic."""
-	frappe.logger().info("national_oil: monthly snapshot task ran on %s", today())

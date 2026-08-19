@@ -18,46 +18,39 @@ fixtures = [
                 "HR Officer",
                 "Accountant",
                 "Driver",
+                "Petrol Manager",
             ]],
+        ],
+    },
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            ["dt", "=", "Shift Assignment"],
         ],
     },
 ]
 
 # Document Events
-doc_events = {
-    "Debt Payment": {
-        "on_submit": "national_oil.receivables.doctype.debt_payment.debt_payment.DebtPayment.on_submit",
-        "on_cancel": "national_oil.receivables.doctype.debt_payment.debt_payment.DebtPayment.on_cancel",
-    },
-    "Credit Payment": {
-        "on_submit": "national_oil.payables.doctype.credit_payment.credit_payment.CreditPayment.on_submit",
-        "on_cancel": "national_oil.payables.doctype.credit_payment.credit_payment.CreditPayment.on_cancel",
-    },
-    "Fuel Purchase": {
-        "on_submit": "national_oil.fuel_operations.doctype.fuel_purchase.fuel_purchase.FuelPurchase.on_submit",
-        "on_cancel": "national_oil.fuel_operations.doctype.fuel_purchase.fuel_purchase.FuelPurchase.on_cancel",
-    },
-    "Inventory Receipt": {
-        "on_submit": "national_oil.inventory.doctype.inventory_receipt.inventory_receipt.InventoryReceipt.on_submit",
-        "on_cancel": "national_oil.inventory.doctype.inventory_receipt.inventory_receipt.InventoryReceipt.on_cancel",
-    },
-}
+# Note: Debt Payment, Credit Payment, Fuel Purchase, and Inventory Receipt already
+# implement on_submit/on_cancel natively on their Document controller classes — Frappe
+# calls those automatically. A doc_events entry pointing at "Class.method" is not a
+# valid module path for hook resolution and breaks submit for these doctypes; do not
+# re-add these without pointing at a plain function.
 
 # Scheduled Tasks
+# auto_settle_debts and send_debt_reminders are parked along with Receivables (see
+# docs/ERP_REUSE_STRATEGY.md) and intentionally not scheduled here. backup_report_snapshot
+# was a no-op stub and has been removed.
 scheduler_events = {
     "daily": [
-        "national_oil.tasks.auto_settle_debts",
+        "national_oil.tasks.settle_supplier_credits",
         "national_oil.tasks.refresh_sales_targets",
-    ],
-    "weekly": [
-        "national_oil.tasks.send_debt_reminders",
-    ],
-    "monthly": [
-        "national_oil.tasks.backup_report_snapshot",
     ],
 }
 
-# Vue SPA route — catch-all served by Frappe page
+# Vue SPA route — any deep link under /petrol/* must resolve to the same page
+# (national_oil/www/petrol.html) so vue-router's client-side history routing can
+# take over after load. Without this, reloading on a sub-route 404s server-side.
 website_route_rules = [
-    {"from_route": "/national-oil/<path:app_path>", "to_route": "national_oil"},
+    {"from_route": "/petrol/<path:app_path>", "to_route": "petrol"},
 ]

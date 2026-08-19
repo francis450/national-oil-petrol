@@ -15,7 +15,7 @@
  "name": "Pump Reading Reconciliation",
  "owner": "Administrator",
  "prepared_report": 0,
- "ref_doctype": "Pump Reading",
+ "ref_doctype": "Shift Assignment",
  "report_name": "Pump Reading Reconciliation",
  "report_type": "Script Report",
  "roles": [

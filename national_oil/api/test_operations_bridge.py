@@ -11,7 +11,44 @@ from national_oil.api.operations_bridge import (
 
 class TestOperationsBridge(FrappeTestCase):
 	def tearDown(self):
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
+
+	def _as_pump_attendant(self):
+		user_email = "no-test-pump-attendant@example.com"
+		if not frappe.db.exists("User", user_email):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": user_email,
+					"first_name": "NO Test Pump Attendant",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Pump Attendant"}],
+				}
+			).insert(ignore_permissions=True)
+		frappe.set_user(user_email)
+
+	def test_non_admin_cannot_create_erpnext_target_directly(self):
+		self._as_pump_attendant()
+		with self.assertRaises(frappe.PermissionError):
+			create_erpnext_target_from_operational(
+				"Fuel Purchase",
+				"Purchase Receipt",
+				doc={
+					"doctype": "Fuel Purchase",
+					"code": "FP-PERM-TEST-001",
+					"dated": "2026-04-23",
+					"supplier": "Some Supplier",
+					"actual_quantity": 100,
+					"unit_cost": 100,
+					"total_cost": 10000,
+				},
+			)
+
+	def test_non_admin_cannot_create_payment_entry_directly(self):
+		self._as_pump_attendant()
+		with self.assertRaises(frappe.PermissionError):
+			create_payment_entry_for_reference("Purchase Invoice", "PI-DOES-NOT-EXIST")
 
 	def test_returns_supported_operational_bundle(self):
 		bundle = get_operational_mapping_bundle()

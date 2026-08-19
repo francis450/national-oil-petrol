@@ -79,14 +79,22 @@ def initiate_stk_push(customer, amount, phone_number, customer_debt=None):
 def mpesa_callback(**kwargs):
 	"""
 	Webhook called by Safaricom when an STK Push transaction completes.
-	IP restriction should be enforced at the nginx/firewall level.
+	IP restriction should be enforced at the nginx/firewall level — as of this
+	writing that restriction is NOT present in this bench's nginx config, so the
+	in-app payload validation below is the only real defense until it is added.
 	"""
 	body = frappe.request.get_json(force=True) or {}
-	stk_callback = (
-		body.get("Body", {}).get("stkCallback", {})
-	)
+
+	stk_callback = body.get("Body", {}).get("stkCallback")
+	if not isinstance(stk_callback, dict):
+		frappe.throw(_("Malformed M-Pesa callback payload."), frappe.ValidationError)
+
 	checkout_id = stk_callback.get("CheckoutRequestID")
 	result_code = stk_callback.get("ResultCode")
+	if not checkout_id or not isinstance(checkout_id, str):
+		frappe.throw(_("M-Pesa callback missing CheckoutRequestID."), frappe.ValidationError)
+	if not isinstance(result_code, int):
+		frappe.throw(_("M-Pesa callback missing or invalid ResultCode."), frappe.ValidationError)
 
 	txn_name = frappe.db.get_value(
 		"M-Pesa Transaction", {"checkout_request_id": checkout_id}, "name"
@@ -95,6 +103,9 @@ def mpesa_callback(**kwargs):
 		return {"ResultCode": 0, "ResultDesc": "Accepted"}
 
 	txn = frappe.get_doc("M-Pesa Transaction", txn_name)
+	if txn.status != "Pending":
+		# Already resolved — ignore replayed/duplicate callbacks instead of overwriting a final state.
+		return {"ResultCode": 0, "ResultDesc": "Accepted"}
 
 	if result_code == 0:
 		# Success — extract metadata

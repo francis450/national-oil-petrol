@@ -1,5 +1,20 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { usePermissions } from '@/composables/usePermissions'
+
+const MODULE_BY_PATH_PREFIX: Record<string, string> = {
+  '/sales': 'sales',
+  '/payables': 'payables',
+  '/inventory': 'inventory',
+  '/finance': 'finance',
+  '/hr': 'hr',
+  '/reports': 'reports',
+}
+
+// PARKED pending a credit-sales decision (see docs/ERP_REUSE_STRATEGY.md). Blocked for every
+// role, not just role-gated like MODULE_BY_PATH_PREFIX above — Receivables has no "allowed" role
+// right now. The route definitions stay in the routes array below so they can be restored intact.
+const PARKED_PATH_PREFIXES = ['/receivables']
 
 const routes: RouteRecordRaw[] = [
   {
@@ -11,7 +26,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Dashboard',
-    component: () => import('@/views/dashboard/DashboardView.vue'),
+    component: () => import('@/views/dashboard/HomeView.vue'),
     meta: { requiresAuth: true, layout: 'app' },
   },
   {
@@ -188,13 +203,27 @@ router.beforeEach(async (to, from, next) => {
     await authStore.checkExistingSession()
   }
 
+  // Receivables is parked for every role — block direct navigation regardless of auth state
+  if (PARKED_PATH_PREFIXES.some((prefix) => to.path.startsWith(prefix))) {
+    next('/')
+  }
   // Redirect unauthenticated users to login
-  if (requiresAuth && !authStore.isAuthenticated) {
+  else if (requiresAuth && !authStore.isAuthenticated) {
     next('/login')
   }
   // Redirect authenticated users away from login page
   else if (to.path === '/login' && authStore.isAuthenticated) {
     next('/')
+  }
+  // Block direct navigation into a module hidden from this user's role
+  else if (authStore.isAuthenticated) {
+    const restrictedPrefix = Object.keys(MODULE_BY_PATH_PREFIX).find((prefix) => to.path.startsWith(prefix))
+    const { canAccessModule } = usePermissions()
+    if (restrictedPrefix && !canAccessModule(MODULE_BY_PATH_PREFIX[restrictedPrefix])) {
+      next('/')
+    } else {
+      next()
+    }
   }
   // Allow navigation
   else {

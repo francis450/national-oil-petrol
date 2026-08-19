@@ -116,6 +116,28 @@
               </div>
             </div>
           </div>
+
+          <div class="rounded-lg border border-gray-800 bg-gray-950 p-4 space-y-3">
+            <p class="text-xs uppercase tracking-wider text-gray-500">Replenish</p>
+            <div class="flex gap-2">
+              <input
+                v-model.number="replenishAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Amount (KSh)"
+                class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              />
+              <button
+                @click="replenish"
+                :disabled="replenishing || !replenishAmount"
+                class="px-4 py-2 text-sm text-white bg-deepseek-blue rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors shrink-0"
+              >
+                {{ replenishing ? 'Saving...' : 'Add Funds' }}
+              </button>
+            </div>
+            <p v-if="replenishError" class="text-xs text-red-300">{{ replenishError }}</p>
+          </div>
         </template>
       </aside>
     </div>
@@ -152,6 +174,26 @@ const loadAccounts = async () => {
     pageError.value = error?.response?.data?.message || error?.message || 'Failed to load petty cash accounts.'
   } finally {
     loading.value = false
+  }
+}
+
+const replenishAmount = ref<number | null>(null)
+const replenishing = ref(false)
+const replenishError = ref('')
+
+const replenish = async () => {
+  if (!selectedAccount.value || !replenishAmount.value) return
+  replenishing.value = true
+  replenishError.value = ''
+  try {
+    await financeApi.replenishPettyCashAccount(selectedAccount.value.name, replenishAmount.value)
+    replenishAmount.value = null
+    await loadAccounts()
+    selectedAccount.value = accounts.value.find((a) => a.name === selectedAccount.value?.name) || selectedAccount.value
+  } catch (error: any) {
+    replenishError.value = error?.response?.data?.message || error?.message || 'Failed to replenish account.'
+  } finally {
+    replenishing.value = false
   }
 }
 

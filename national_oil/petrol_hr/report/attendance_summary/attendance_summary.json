@@ -15,8 +15,8 @@
  "name": "Attendance Summary",
  "owner": "Administrator",
  "prepared_report": 0,
- "query": "SELECT\n  ar.employee AS `Employee`,\n  SUM(CASE WHEN ar.status IN ('Present', 'Late') THEN 1 ELSE 0 END) AS `Present`,\n  SUM(CASE WHEN ar.status = 'Absent' THEN 1 ELSE 0 END) AS `Absent`,\n  SUM(CASE WHEN ar.status = 'Half Day' THEN 1 ELSE 0 END) AS `Half Day`,\n  SUM(ar.overtime_hours) AS `Total Overtime Hrs`,\n  COUNT(ar.name) AS `Total Days`,\n  ROUND(\n    SUM(CASE WHEN ar.status IN ('Present', 'Late') THEN 1 ELSE 0 END) / COUNT(ar.name) * 100,\n    1\n  ) AS `Attendance %`\nFROM `tabAttendance Record` ar\nWHERE YEAR(ar.dated) = %(year)s\n  AND MONTH(ar.dated) = %(month)s\n  AND (%(employee)s IS NULL OR %(employee)s = '' OR ar.employee = %(employee)s)\nGROUP BY ar.employee\nORDER BY ar.employee",
- "ref_doctype": "Attendance Record",
+ "query": "SELECT\n  a.employee AS `Employee`,\n  SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS `Present`,\n  SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) AS `Absent`,\n  SUM(CASE WHEN a.status = 'Half Day' THEN 1 ELSE 0 END) AS `Half Day`,\n  SUM(CASE WHEN a.status = 'On Leave' THEN 1 ELSE 0 END) AS `On Leave`,\n  COUNT(a.name) AS `Total Days`,\n  ROUND(\n    SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) / COUNT(a.name) * 100,\n    1\n  ) AS `Attendance %`\nFROM `tabAttendance` a\nWHERE a.docstatus = 1\n  AND YEAR(a.attendance_date) = %(year)s\n  AND MONTH(a.attendance_date) = %(month)s\n  AND (%(employee)s IS NULL OR %(employee)s = '' OR a.employee = %(employee)s)\nGROUP BY a.employee\nORDER BY a.employee",
+ "ref_doctype": "Attendance",
  "report_name": "Attendance Summary",
  "report_type": "Query Report",
  "roles": [

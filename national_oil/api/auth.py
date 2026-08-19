@@ -16,7 +16,11 @@ def get_csrf_token():
 def login(usr: str, pwd: str):
 	"""
 	Custom login endpoint for SPA login.
-	CSRF validation is disabled at site level for development.
+	Note: `ignore_csrf` is not set in this site's config, so Frappe's default CSRF
+	enforcement is active for authenticated requests after login. This endpoint
+	itself is naturally exempt because a Guest session has no CSRF token yet —
+	that's expected, not a hole. Verified against site_config.json and
+	common_site_config.json (2026-08-19).
 	"""
 	try:
 		login_manager = LoginManager()
@@ -47,12 +51,14 @@ def get_petrol_user_context():
 	
 	user_doc = frappe.get_doc('User', frappe.session.user)
 	user_roles = [role.role for role in user_doc.roles]
-	
+	employee = frappe.db.get_value('Employee', {'user_id': frappe.session.user}, 'name')
+
 	return {
 		'user': frappe.session.user,
 		'email': user_doc.email,
 		'full_name': user_doc.full_name,
 		'roles': user_roles,
+		'employee': employee,
 		'has_petrol_access': 'Petrol Manager' in user_roles or 'System Manager' in user_roles,
 	}
 

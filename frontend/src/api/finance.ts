@@ -62,4 +62,12 @@ export const financeApi = {
     })
     return response.data.data as PettyCashEntryRow[]
   },
+
+  async replenishPettyCashAccount(account: string, amount: number) {
+    const response = await apiClient.post('/api/method/national_oil.api.finance.replenish_petty_cash_account', {
+      account,
+      amount,
+    })
+    return response.data.message as { name: string; balance: number; last_replenished: string }
+  },
 }

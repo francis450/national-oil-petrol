@@ -13,15 +13,10 @@ frappe.query_reports["Pump Reading Reconciliation"] = {
 			default: frappe.datetime.get_today(),
 		},
 		{
-			fieldname: "pump_number",
-			label: __("Pump Number"),
-			fieldtype: "Data",
-		},
-		{
-			fieldname: "fuel_type",
-			label: __("Fuel Type"),
-			fieldtype: "Link",
-			options: "Fuel Type",
+			fieldname: "reconciliation_status",
+			label: __("Reconciliation Status"),
+			fieldtype: "Select",
+			options: "\nOpen\nClosed\nVerified",
 		},
 	],
 };

@@ -2,8 +2,12 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
+# PARKED pending a credit-sales decision (see docs/ERP_REUSE_STRATEGY.md). Both endpoints
+# below are the live API surface for the Customer Debt / Debt Payment workflow, so the
+# @frappe.whitelist() decorators are removed rather than left reachable — the functions
+# stay in place, ready to be re-whitelisted if Receivables is unparked.
 
-@frappe.whitelist()
+
 def get_customer_balance(customer):
 	"""Total payable, paid, and outstanding for a customer."""
 	result = frappe.db.sql("""
@@ -17,7 +21,6 @@ def get_customer_balance(customer):
 	return result[0] if result else {}
 
 
-@frappe.whitelist()
 def record_debt_payment(customer_debt, amount, payment_method="Cash", reference=None, dated=None):
 	"""Create and submit a Debt Payment in one call."""
 	frappe.has_permission("Debt Payment", "create", throw=True)

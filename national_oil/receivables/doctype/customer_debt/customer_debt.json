@@ -101,8 +101,8 @@
  "permissions": [
   {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
   {"role": "Station Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
-  {"role": "Cashier", "read": 1, "create": 1, "submit": 1},
-  {"role": "Accountant", "read": 1, "write": 1, "create": 1, "submit": 1}
+  {"role": "Cashier", "read": 1},
+  {"role": "Accountant", "read": 1}
  ],
  "sort_field": "dated",
  "sort_order": "DESC",

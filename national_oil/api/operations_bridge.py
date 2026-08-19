@@ -31,6 +31,8 @@ def _coerce_source_doc(source_doctype, docname=None, doc=None):
 	if source_doctype not in OPERATIONAL_MAPPING_BUNDLE:
 		frappe.throw(frappe._("Unsupported source doctype {0}").format(source_doctype))
 
+	frappe.has_permission(source_doctype, "read", throw=True)
+
 	if doc is not None:
 		doc = frappe.parse_json(doc) if isinstance(doc, str) else doc
 		if isinstance(doc, dict):
@@ -618,6 +620,10 @@ def create_erpnext_target_from_operational(
 	if unresolved:
 		frappe.throw("\n".join(unresolved))
 
+	frappe.has_permission(target_doctype, "create", throw=True)
+	if submit:
+		frappe.has_permission(target_doctype, "submit", throw=True)
+
 	target_doc = frappe.get_doc(payload)
 	target_doc.insert(ignore_permissions=True)
 	if submit:
@@ -641,6 +647,7 @@ def create_payment_entry_for_reference(
 ):
 	"""Create a draft or submitted Payment Entry from an ERPNext source document."""
 	submit = cint(submit)
+	frappe.has_permission(reference_doctype, "read", throw=True)
 	source_doc = frappe.get_doc(reference_doctype, reference_name)
 	if source_doc.docstatus != 1:
 		frappe.throw(
@@ -660,6 +667,10 @@ def create_payment_entry_for_reference(
 				"No Mode of Payment Account is configured for the selected payment mode and company."
 			)
 		)
+
+	frappe.has_permission("Payment Entry", "create", throw=True)
+	if submit:
+		frappe.has_permission("Payment Entry", "submit", throw=True)
 
 	pe = get_payment_entry(
 		reference_doctype,

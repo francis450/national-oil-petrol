@@ -7,12 +7,26 @@ interface User {
 	email: string
 	full_name?: string
 	roles?: string[]
+	employee?: string | null
 }
 
 export const useAuthStore = defineStore('auth', () => {
 	const user = ref<User | null>(null)
 	const isAuthenticated = computed(() => !!user.value)
 	const isCheckingAuth = ref(false)
+
+	const fetchPetrolContext = async () => {
+		try {
+			const response = await apiClient.get('/api/method/national_oil.api.auth.get_petrol_user_context')
+			const context = response.data.message
+			if (user.value && context) {
+				user.value.roles = context.roles || []
+				user.value.employee = context.employee || null
+			}
+		} catch (error) {
+			// Non-fatal — role-based UI just falls back to showing nothing extra.
+		}
+	}
 
 	/**
 	 * Check if user has existing ERPNext session (e.g., from Jinja template)
@@ -35,6 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
 						email: userDoc.data.data.email,
 						full_name: userDoc.data.data.full_name,
 					}
+					await fetchPetrolContext()
 					return true
 				}
 			} else {
@@ -58,19 +73,23 @@ export const useAuthStore = defineStore('auth', () => {
 	const login = async (username: string, password: string) => {
 		try {
 			// Use frappe-js-sdk auth to login
-			const response = await frappeAuth.login(username, password)
-			
-			if (response?.message?.user) {
-				const userData = response.message.user
+			await frappeAuth.loginWithUsernamePassword({ username, password })
+
+			// Login response only confirms the session; fetch full user details separately
+			const currentUser = await frappeAuth.getLoggedInUser()
+			const userDoc = await apiClient.get(`/api/resource/User/${currentUser}?fields=["name","email","full_name"]`)
+
+			if (userDoc.data.data) {
 				user.value = {
-					name: userData.name || username,
-					email: userData.email || '',
-					full_name: userData.full_name || '',
+					name: userDoc.data.data.name,
+					email: userDoc.data.data.email,
+					full_name: userDoc.data.data.full_name,
 				}
+				await fetchPetrolContext()
 				console.log('✓ Login successful:', user.value.name)
 				return true
 			} else {
-				console.error('Unexpected login response:', response)
+				console.error('Unexpected user response:', userDoc)
 				return false
 			}
 		} catch (error: any) {
@@ -101,6 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
 		checkExistingSession,
 		login,
 		logout,
+		fetchPetrolContext,
 	}
 })
 
