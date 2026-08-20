@@ -10,4 +10,5 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 
+// Initialize dark mode on app mount
 app.mount('#app')
