@@ -9,10 +9,12 @@ class InventoryReceipt(Document):
 			frappe.throw(frappe._("Units Received must be greater than zero"))
 		if flt(self.unit_cost) <= 0:
 			frappe.throw(frappe._("Unit Cost must be greater than zero"))
+
+		self.total_cost = flt(self.unit_cost) * cint(self.units)
+
 		if flt(self.amount_paid) > flt(self.total_cost):
 			frappe.throw(frappe._("Amount Paid cannot exceed Total Cost"))
 
-		self.total_cost = flt(self.unit_cost) * cint(self.units)
 		self.balance = self.total_cost - flt(self.amount_paid)
 
 		if cint(self.subunits_per_unit) > 0:

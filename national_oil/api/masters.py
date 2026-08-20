@@ -32,6 +32,16 @@ ALLOWED_MASTER_DOCTYPES = {
 		"search_fields": ["name", "item_name", "item_group", "stock_uom"],
 		"default_fields": ["name", "item_name", "item_group", "stock_uom", "is_stock_item", "disabled"],
 	},
+	"Warehouse": {
+		"label_field": "warehouse_name",
+		"search_fields": ["name", "warehouse_name", "company"],
+		"default_fields": ["name", "warehouse_name", "company", "is_group", "disabled"],
+	},
+	"Fuel Type": {
+		"label_field": "fuel_type_name",
+		"search_fields": ["name", "fuel_type_name"],
+		"default_fields": ["name", "fuel_type_name", "item", "unit_of_measure"],
+	},
 }
 
 
@@ -53,7 +63,7 @@ def _build_or_filters(search_fields: list[str], txt: str) -> list[list[str]]:
 
 
 @frappe.whitelist()
-def list_master_records(doctype, txt=None, limit_page_length=20):
+def list_master_records(doctype, txt=None, limit_page_length=20, company=None):
 	"""Return standardized master records from ERPNext/HRMS canonical doctypes."""
 	doctype = (doctype or "").strip()
 	txt = (txt or "").strip()
@@ -61,9 +71,15 @@ def list_master_records(doctype, txt=None, limit_page_length=20):
 
 	config = _get_master_config(doctype)
 	fields = list(dict.fromkeys(config["default_fields"] + [config["label_field"]]))
+
+	filters = {}
+	if company and "company" in config["default_fields"]:
+		filters["company"] = company
+
 	records = frappe.get_all(
 		doctype,
 		fields=fields,
+		filters=filters,
 		or_filters=_build_or_filters(config["search_fields"], txt),
 		limit_page_length=limit_page_length,
 		order_by="modified desc",

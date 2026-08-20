@@ -7,6 +7,7 @@
  "field_order": [
   "fuel_type_name",
   "unit_of_measure",
+  "item",
   "description"
  ],
  "fields": [
@@ -27,6 +28,14 @@
    "options": "Litres\nKg\nCubic Metres",
    "reqd": 1,
    "default": "Litres"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "options": "Item",
+   "in_list_view": 1,
+   "label": "ERPNext Item",
+   "description": "Canonical ERPNext Item that this fuel type maps to for stock/pricing."
   },
   {
    "fieldname": "description",

@@ -1,1 +1,0 @@
-import{d as e,a,m as o,p as t,R as r}from"./index-BnbfaT-C.js";const _=e({__name:"PayablesLayout",setup(s){return(n,c)=>(a(),o(t(r)))}});export{_ as default};

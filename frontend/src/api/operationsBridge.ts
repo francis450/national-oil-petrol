@@ -12,6 +12,9 @@ export interface FuelPurchaseRow {
   amount_paid: number
   balance: number
   payment_method?: string
+  item_code?: string
+  warehouse?: string
+  purchase_receipt?: string
   docstatus: number
 }
 
@@ -67,6 +70,9 @@ const fuelPurchaseFields = [
   'amount_paid',
   'balance',
   'payment_method',
+  'item_code',
+  'warehouse',
+  'purchase_receipt',
   'docstatus',
 ]
 

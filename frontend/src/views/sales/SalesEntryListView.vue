@@ -3,7 +3,7 @@
     <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-white mb-1">Sales Entries</h1>
-        <p class="text-gray-400">Operational sales capture with ERPNext invoice bridge actions.</p>
+        <p class="text-gray-400">Capture sales and post invoices for customer accounts.</p>
       </div>
       <button
         @click="openCreate"
@@ -22,7 +22,7 @@
         <div class="flex items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold text-white">Operational Sales</h2>
-            <p class="text-sm text-gray-400">Select a sales entry to preview its ERPNext invoice mapping.</p>
+            <p class="text-sm text-gray-400">Select an entry to view its summary.</p>
           </div>
           <button
             @click="loadSalesEntries"
@@ -88,12 +88,12 @@
 
       <aside class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
         <div>
-          <h2 class="text-xl font-bold text-white">ERPNext Invoice Preview</h2>
-          <p class="text-sm text-gray-400">See how each operational sale maps into ERPNext.</p>
+          <h2 class="text-xl font-bold text-white">Sale Summary</h2>
+          <p class="text-sm text-gray-400">Review the details, then create an invoice for this sale.</p>
         </div>
 
         <div v-if="!selectedEntry" class="text-sm text-gray-400 py-8 text-center border border-dashed border-gray-800 rounded-lg">
-          Select a sales entry to preview its ERPNext invoice mapping.
+          Select an entry to see its summary.
         </div>
 
         <template v-else>
@@ -108,7 +108,7 @@
                 :disabled="previewLoading"
                 class="px-3 py-1.5 text-xs rounded bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors"
               >
-                {{ previewLoading ? 'Loading...' : 'Reload Preview' }}
+                {{ previewLoading ? 'Loading...' : 'Refresh' }}
               </button>
             </div>
             <div class="grid grid-cols-2 gap-3 text-sm">
@@ -135,7 +135,7 @@
             {{ previewError }}
           </div>
 
-          <div v-if="previewLoading" class="text-sm text-gray-400 py-8 text-center">Loading mapping preview...</div>
+          <div v-if="previewLoading" class="text-sm text-gray-400 py-8 text-center">Loading summary...</div>
 
           <div v-else-if="preview?.targets?.length" class="space-y-4">
             <article
@@ -145,8 +145,8 @@
             >
               <div class="flex items-center justify-between gap-4">
                 <div>
-                  <p class="text-sm font-semibold text-white">{{ target.target_doctype }}</p>
-                  <p class="text-xs text-gray-500">{{ target.recommended ? 'Recommended target' : 'Optional target' }}</p>
+                  <p class="text-sm font-semibold text-white">Invoice</p>
+                  <p class="text-xs text-gray-500">{{ target.recommended ? 'Recommended' : 'Optional' }}</p>
                 </div>
                 <button
                   v-if="target.target_doctype === 'Sales Invoice'"
@@ -154,30 +154,28 @@
                   :disabled="creatingInvoiceFor === selectedEntry.name"
                   class="px-3 py-1.5 text-xs rounded bg-deepseek-blue text-white hover:bg-blue-700 transition-colors"
                 >
-                  {{ creatingInvoiceFor === selectedEntry.name ? 'Creating...' : 'Create Sales Invoice' }}
+                  {{ creatingInvoiceFor === selectedEntry.name ? 'Creating...' : 'Create Invoice' }}
                 </button>
               </div>
 
               <div v-if="target.unresolved_dependencies.length" class="p-3 rounded border border-yellow-800 bg-yellow-500 bg-opacity-10">
-                <p class="text-xs uppercase tracking-wider text-yellow-400 mb-2">Unresolved Dependencies</p>
+                <p class="text-xs uppercase tracking-wider text-yellow-400 mb-2">Before you submit</p>
                 <ul class="space-y-1 text-sm text-yellow-200">
                   <li v-for="issue in target.unresolved_dependencies" :key="issue">{{ issue }}</li>
                 </ul>
               </div>
-
-              <pre class="text-xs text-gray-300 bg-black rounded p-3 overflow-x-auto whitespace-pre-wrap">{{ formatPayload(target.payload) }}</pre>
             </article>
           </div>
         </template>
 
         <div v-if="createdInvoices.length" class="pt-2 border-t border-gray-800 space-y-2">
-          <p class="text-xs uppercase tracking-wider text-gray-500">Created ERPNext Drafts</p>
+          <p class="text-xs uppercase tracking-wider text-gray-500">Created Invoices</p>
           <div
             v-for="invoice in createdInvoices"
             :key="invoice.name"
             class="rounded border border-green-800 bg-green-900 bg-opacity-10 px-3 py-2 text-sm text-green-200"
           >
-            Sales Invoice: {{ invoice.name }}
+            Invoice: {{ invoice.name }}
           </div>
         </div>
       </aside>
@@ -305,7 +303,6 @@ const createdInvoices = ref<Array<{ name: string }>>([])
 
 const formatCurrency = (value: number) => `KSh ${Number(value || 0).toLocaleString()}`
 const formatDate = (value: string) => new Date(value).toLocaleDateString('en-KE')
-const formatPayload = (payload: Record<string, any>) => JSON.stringify(payload, null, 2)
 
 const loadSalesEntries = async () => {
   loading.value = true
@@ -330,7 +327,7 @@ const loadPreview = async (name: string) => {
   try {
     preview.value = await operationsBridgeApi.previewSalesEntryMapping(name)
   } catch (error: any) {
-    previewError.value = error?.response?.data?.message || error?.message || 'Failed to load ERPNext invoice preview.'
+    previewError.value = error?.response?.data?.message || error?.message || 'Failed to load sale summary.'
   } finally {
     previewLoading.value = false
   }
@@ -355,7 +352,7 @@ const createInvoice = async (row: SalesEntryRow) => {
       await loadPreview(row.name)
     }
   } catch (error: any) {
-    previewError.value = error?.response?.data?.message || error?.message || 'Failed to create Sales Invoice.'
+    previewError.value = error?.response?.data?.message || error?.message || 'Failed to create invoice.'
   } finally {
     creatingInvoiceFor.value = ''
   }

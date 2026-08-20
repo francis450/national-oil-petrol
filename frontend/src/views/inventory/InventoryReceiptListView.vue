@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div>
       <h1 class="text-3xl font-bold text-white mb-1">Inventory Receipts</h1>
-      <p class="text-gray-400">Operational non-fuel receipts with ERPNext purchase bridge actions.</p>
+      <p class="text-gray-400">Track non-fuel deliveries and post them to stock and payables.</p>
     </div>
 
     <div v-if="pageError" class="p-4 rounded-lg border border-red-800 bg-red-900 bg-opacity-20 text-red-200 text-sm">
@@ -14,7 +14,7 @@
         <div class="flex items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold text-white">Operational Receipts</h2>
-            <p class="text-sm text-gray-400">Select an inventory receipt to preview ERPNext purchase targets.</p>
+            <p class="text-sm text-gray-400">Select a receipt to view its summary.</p>
           </div>
           <button
             @click="loadInventoryReceipts"
@@ -87,12 +87,12 @@
 
       <aside class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
         <div>
-          <h2 class="text-xl font-bold text-white">ERPNext Bridge Preview</h2>
-          <p class="text-sm text-gray-400">See the ERPNext purchase documents this operational receipt will create.</p>
+          <h2 class="text-xl font-bold text-white">Receipt Summary</h2>
+          <p class="text-sm text-gray-400">Review the details, then post the receipt to stock and payables.</p>
         </div>
 
         <div v-if="!selectedReceipt" class="text-sm text-gray-400 py-8 text-center border border-dashed border-gray-800 rounded-lg">
-          Select an inventory receipt to preview its ERPNext mappings.
+          Select a receipt to see its summary.
         </div>
 
         <template v-else>
@@ -107,7 +107,7 @@
                 :disabled="previewLoading"
                 class="px-3 py-1.5 text-xs rounded bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors"
               >
-                {{ previewLoading ? 'Loading...' : 'Reload Preview' }}
+                {{ previewLoading ? 'Loading...' : 'Refresh' }}
               </button>
             </div>
             <div class="grid grid-cols-2 gap-3 text-sm">
@@ -134,7 +134,7 @@
             {{ previewError }}
           </div>
 
-          <div v-if="previewLoading" class="text-sm text-gray-400 py-8 text-center">Loading mapping preview...</div>
+          <div v-if="previewLoading" class="text-sm text-gray-400 py-8 text-center">Loading summary...</div>
 
           <div v-else-if="preview?.targets?.length" class="space-y-4">
             <article
@@ -144,8 +144,8 @@
             >
               <div class="flex items-center justify-between gap-4">
                 <div>
-                  <p class="text-sm font-semibold text-white">{{ target.target_doctype }}</p>
-                  <p class="text-xs text-gray-500">{{ target.recommended ? 'Recommended target' : 'Optional target' }}</p>
+                  <p class="text-sm font-semibold text-white">{{ friendlyTargetLabel(target.target_doctype) }}</p>
+                  <p class="text-xs text-gray-500">{{ target.recommended ? 'Recommended' : 'Optional' }}</p>
                 </div>
                 <button
                   v-if="target.target_doctype === 'Purchase Receipt' || target.target_doctype === 'Purchase Invoice'"
@@ -153,30 +153,28 @@
                   :disabled="creatingTargetFor === `${selectedReceipt.name}:${target.target_doctype}`"
                   class="px-3 py-1.5 text-xs rounded bg-deepseek-blue text-white hover:bg-blue-700 transition-colors"
                 >
-                  {{ creatingTargetFor === `${selectedReceipt.name}:${target.target_doctype}` ? 'Creating...' : `Create ${target.target_doctype}` }}
+                  {{ creatingTargetFor === `${selectedReceipt.name}:${target.target_doctype}` ? 'Creating...' : `Create ${friendlyTargetLabel(target.target_doctype)}` }}
                 </button>
               </div>
 
               <div v-if="target.unresolved_dependencies.length" class="p-3 rounded border border-yellow-800 bg-yellow-500 bg-opacity-10">
-                <p class="text-xs uppercase tracking-wider text-yellow-400 mb-2">Unresolved Dependencies</p>
+                <p class="text-xs uppercase tracking-wider text-yellow-400 mb-2">Before you submit</p>
                 <ul class="space-y-1 text-sm text-yellow-200">
                   <li v-for="issue in target.unresolved_dependencies" :key="issue">{{ issue }}</li>
                 </ul>
               </div>
-
-              <pre class="text-xs text-gray-300 bg-black rounded p-3 overflow-x-auto whitespace-pre-wrap">{{ formatPayload(target.payload) }}</pre>
             </article>
           </div>
         </template>
 
         <div v-if="createdTargets.length" class="pt-2 border-t border-gray-800 space-y-2">
-          <p class="text-xs uppercase tracking-wider text-gray-500">Created ERPNext Drafts</p>
+          <p class="text-xs uppercase tracking-wider text-gray-500">Created Records</p>
           <div
             v-for="target in createdTargets"
             :key="`${target.target_doctype}:${target.name}`"
             class="rounded border border-green-800 bg-green-900 bg-opacity-10 px-3 py-2 text-sm text-green-200"
           >
-            {{ target.target_doctype }}: {{ target.name }}
+            {{ friendlyTargetLabel(target.target_doctype) }}: {{ target.name }}
           </div>
         </div>
       </aside>
@@ -206,7 +204,12 @@ const createdTargets = ref<Array<{ target_doctype: string; name: string }>>([])
 const formatCurrency = (value: number) => `KSh ${Number(value || 0).toLocaleString()}`
 const formatDate = (value: string) => new Date(value).toLocaleDateString('en-KE')
 const formatNumber = (value: number) => Number(value || 0).toLocaleString()
-const formatPayload = (payload: Record<string, any>) => JSON.stringify(payload, null, 2)
+
+const TARGET_LABELS: Record<string, string> = {
+  'Purchase Receipt': 'Receipt',
+  'Purchase Invoice': 'Invoice',
+}
+const friendlyTargetLabel = (doctype: string) => TARGET_LABELS[doctype] || doctype
 
 const loadInventoryReceipts = async () => {
   loading.value = true
@@ -231,7 +234,7 @@ const loadPreview = async (name: string) => {
   try {
     preview.value = await operationsBridgeApi.previewInventoryReceiptMapping(name)
   } catch (error: any) {
-    previewError.value = error?.response?.data?.message || error?.message || 'Failed to load ERPNext mapping preview.'
+    previewError.value = error?.response?.data?.message || error?.message || 'Failed to load receipt summary.'
   } finally {
     previewLoading.value = false
   }

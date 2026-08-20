@@ -30,7 +30,7 @@ const currentLayout = computed(() => {
 })
 
 onMounted(() => {
-  authStore.checkAuth()
+  authStore.checkExistingSession()
 })
 </script>
 

@@ -3,7 +3,7 @@
     <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-white mb-1">Fuel Purchases</h1>
-        <p class="text-gray-400">Operational delivery capture with ERPNext purchase bridge actions.</p>
+        <p class="text-gray-400">Capture fuel deliveries and track supplier payments.</p>
       </div>
       <button
         @click="openCreate"
@@ -22,7 +22,7 @@
         <div class="flex items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold text-white">Operational Records</h2>
-            <p class="text-sm text-gray-400">Select a fuel purchase to preview ERPNext targets.</p>
+            <p class="text-sm text-gray-400">Select a delivery to view its summary.</p>
           </div>
           <button
             @click="loadFuelPurchases"
@@ -48,6 +48,7 @@
                 <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Supplier</th>
                 <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Fuel</th>
                 <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Amount</th>
+                <th class="px-4 py-3 text-left text-gray-400 font-medium text-xs uppercase tracking-wider">Status</th>
                 <th class="px-4 py-3 text-center text-gray-400 font-medium text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -64,6 +65,13 @@
                 <td class="px-4 py-3 text-gray-300">{{ row.fuel_type }}</td>
                 <td class="px-4 py-3 text-gray-300">{{ formatCurrency(row.total_cost) }}</td>
                 <td class="px-4 py-3">
+                  <span v-if="row.docstatus === 1 && row.purchase_receipt" class="text-xs text-green-300">
+                    Submitted &middot; {{ row.purchase_receipt }}
+                  </span>
+                  <span v-else-if="row.docstatus === 1" class="text-xs text-yellow-300">Submitted</span>
+                  <span v-else class="text-xs text-gray-400">Draft</span>
+                </td>
+                <td class="px-4 py-3">
                   <div class="flex justify-center gap-2">
                     <button
                       @click="selectPurchase(row)"
@@ -72,18 +80,12 @@
                       Preview
                     </button>
                     <button
-                      @click="createTarget(row, 'Purchase Receipt')"
-                      :disabled="creatingTargetFor === `${row.name}:Purchase Receipt`"
-                      class="px-3 py-1.5 text-xs rounded bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors"
+                      v-if="row.docstatus === 0"
+                      @click="submitPurchase(row)"
+                      :disabled="submittingFor === row.name"
+                      class="px-3 py-1.5 text-xs rounded bg-deepseek-blue text-white hover:bg-blue-700 transition-colors disabled:opacity-40"
                     >
-                      {{ creatingTargetFor === `${row.name}:Purchase Receipt` ? 'Creating...' : 'Create Receipt' }}
-                    </button>
-                    <button
-                      @click="createTarget(row, 'Purchase Invoice')"
-                      :disabled="creatingTargetFor === `${row.name}:Purchase Invoice`"
-                      class="px-3 py-1.5 text-xs rounded bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors"
-                    >
-                      {{ creatingTargetFor === `${row.name}:Purchase Invoice` ? 'Creating...' : 'Create Invoice' }}
+                      {{ submittingFor === row.name ? 'Submitting...' : 'Submit' }}
                     </button>
                   </div>
                 </td>
@@ -95,12 +97,14 @@
 
       <aside class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
         <div>
-          <h2 class="text-xl font-bold text-white">ERPNext Bridge Preview</h2>
-          <p class="text-sm text-gray-400">See exactly what draft ERPNext documents will be created.</p>
+          <h2 class="text-xl font-bold text-white">Delivery Summary</h2>
+          <p class="text-sm text-gray-400">
+            Review the delivery details below, then submit to update stock.
+          </p>
         </div>
 
         <div v-if="!selectedPurchase" class="text-sm text-gray-400 py-8 text-center border border-dashed border-gray-800 rounded-lg">
-          Select a fuel purchase to preview its ERPNext mappings.
+          Select a delivery to see its summary.
         </div>
 
         <template v-else>
@@ -132,8 +136,20 @@
                 <p class="text-gray-200">{{ selectedPurchase.actual_quantity.toLocaleString() }}</p>
               </div>
               <div>
-                <p class="text-gray-500">Amount</p>
+                <p class="text-gray-500">Unit Cost</p>
+                <p class="text-gray-200">{{ formatCurrency(selectedPurchase.unit_cost) }}</p>
+              </div>
+              <div>
+                <p class="text-gray-500">Total Amount</p>
                 <p class="text-gray-200">{{ formatCurrency(selectedPurchase.total_cost) }}</p>
+              </div>
+              <div>
+                <p class="text-gray-500">Amount Paid</p>
+                <p class="text-gray-200">{{ formatCurrency(selectedPurchase.amount_paid) }}</p>
+              </div>
+              <div>
+                <p class="text-gray-500">Balance</p>
+                <p class="text-gray-200">{{ formatCurrency(selectedPurchase.balance) }}</p>
               </div>
             </div>
           </div>
@@ -142,51 +158,29 @@
             {{ previewError }}
           </div>
 
-          <div v-if="previewLoading" class="text-sm text-gray-400 py-8 text-center">Loading mapping preview...</div>
+          <div
+            v-if="!previewLoading && purchaseReceiptTarget?.unresolved_dependencies.length"
+            class="p-3 rounded border border-yellow-800 bg-yellow-500 bg-opacity-10"
+          >
+            <p class="text-xs uppercase tracking-wider text-yellow-400 mb-2">Before you submit</p>
+            <ul class="space-y-1 text-sm text-yellow-200">
+              <li v-for="issue in purchaseReceiptTarget.unresolved_dependencies" :key="issue">{{ issue }}</li>
+            </ul>
+          </div>
 
-          <div v-else-if="preview?.targets?.length" class="space-y-4">
-            <article
-              v-for="target in preview.targets"
-              :key="target.target_doctype"
-              class="rounded-lg border border-gray-800 bg-gray-950 p-4 space-y-3"
+          <div v-if="selectedPurchase.docstatus === 0" class="pt-2">
+            <button
+              @click="submitPurchase(selectedPurchase)"
+              :disabled="submittingFor === selectedPurchase.name"
+              class="w-full px-4 py-2 text-sm text-white bg-deepseek-blue rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors"
             >
-              <div class="flex items-center justify-between gap-4">
-                <div>
-                  <p class="text-sm font-semibold text-white">{{ target.target_doctype }}</p>
-                  <p class="text-xs text-gray-500">{{ target.recommended ? 'Recommended target' : 'Optional target' }}</p>
-                </div>
-                <button
-                  v-if="target.target_doctype === 'Purchase Receipt' || target.target_doctype === 'Purchase Invoice'"
-                  @click="createTarget(selectedPurchase, target.target_doctype as 'Purchase Receipt' | 'Purchase Invoice')"
-                  :disabled="creatingTargetFor === `${selectedPurchase.name}:${target.target_doctype}`"
-                  class="px-3 py-1.5 text-xs rounded bg-deepseek-blue text-white hover:bg-blue-700 transition-colors"
-                >
-                  {{ creatingTargetFor === `${selectedPurchase.name}:${target.target_doctype}` ? 'Creating...' : `Create ${target.target_doctype}` }}
-                </button>
-              </div>
-
-              <div v-if="target.unresolved_dependencies.length" class="p-3 rounded border border-yellow-800 bg-yellow-500 bg-opacity-10">
-                <p class="text-xs uppercase tracking-wider text-yellow-400 mb-2">Unresolved Dependencies</p>
-                <ul class="space-y-1 text-sm text-yellow-200">
-                  <li v-for="issue in target.unresolved_dependencies" :key="issue">{{ issue }}</li>
-                </ul>
-              </div>
-
-              <pre class="text-xs text-gray-300 bg-black rounded p-3 overflow-x-auto whitespace-pre-wrap">{{ formatPayload(target.payload) }}</pre>
-            </article>
+              {{ submittingFor === selectedPurchase.name ? 'Submitting...' : 'Submit Delivery' }}
+            </button>
+          </div>
+          <div v-else class="pt-2 rounded border border-green-800 bg-green-900 bg-opacity-10 px-3 py-2 text-sm text-green-200">
+            Added to stock
           </div>
         </template>
-
-        <div v-if="createdTargets.length" class="pt-2 border-t border-gray-800 space-y-2">
-          <p class="text-xs uppercase tracking-wider text-gray-500">Created ERPNext Drafts</p>
-          <div
-            v-for="target in createdTargets"
-            :key="`${target.target_doctype}:${target.name}`"
-            class="rounded border border-green-800 bg-green-900 bg-opacity-10 px-3 py-2 text-sm text-green-200"
-          >
-            {{ target.target_doctype }}: {{ target.name }}
-          </div>
-        </div>
       </aside>
     </div>
 
@@ -213,22 +207,24 @@
         </div>
         <div>
           <label class="block text-sm text-gray-400 mb-1">Supplier <span class="text-red-400">*</span></label>
-          <input
+          <select
             v-model="form.supplier"
-            type="text"
-            placeholder="Supplier name or ID"
-            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-          />
+            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+          >
+            <option value="">— Select —</option>
+            <option v-for="s in supplierOptions" :key="s.name" :value="s.name">{{ s.label }}</option>
+          </select>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm text-gray-400 mb-1">Fuel Type <span class="text-red-400">*</span></label>
-            <input
+            <select
               v-model="form.fuel_type"
-              type="text"
-              placeholder="e.g. Petrol, Diesel"
-              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-            />
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+            >
+              <option value="">— Select —</option>
+              <option v-for="ft in fuelTypeOptions" :key="ft.name" :value="ft.name">{{ ft.label }}</option>
+            </select>
           </div>
           <div>
             <label class="block text-sm text-gray-400 mb-1">Unit of Measure <span class="text-red-400">*</span></label>
@@ -238,6 +234,28 @@
             >
               <option>Litres</option>
               <option>Kg</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Item</label>
+            <select
+              v-model="form.item_code"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+            >
+              <option value="">— Auto (from Fuel Type) —</option>
+              <option v-for="item in itemOptions" :key="item.name" :value="item.name">{{ item.label }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Tank Warehouse</label>
+            <select
+              v-model="form.warehouse"
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+            >
+              <option value="">— Auto (default tank) —</option>
+              <option v-for="wh in warehouseOptions" :key="wh.name" :value="wh.name">{{ wh.label }}</option>
             </select>
           </div>
         </div>
@@ -295,12 +313,13 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm text-gray-400 mb-1">Driver</label>
-            <input
+            <select
               v-model="form.driver"
-              type="text"
-              placeholder="Driver ID (optional)"
-              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-            />
+              class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+            >
+              <option value="">— None —</option>
+              <option v-for="d in driverOptions" :key="d.name" :value="d.name">{{ d.label }}</option>
+            </select>
           </div>
           <div>
             <label class="block text-sm text-gray-400 mb-1">Vehicle Plate</label>
@@ -358,12 +377,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import {
   operationsBridgeApi,
   type BridgePreview,
   type FuelPurchaseRow,
 } from '@/api/operationsBridge'
+import { fuelApi } from '@/api/fuel'
+import { mastersApi, type MasterRecord } from '@/api/masters'
 import SlideOver from '@/components/common/SlideOver.vue'
 import { apiClient } from '@/api/client'
 
@@ -375,12 +396,14 @@ const selectedPurchase = ref<FuelPurchaseRow | null>(null)
 const preview = ref<BridgePreview | null>(null)
 const previewLoading = ref(false)
 const previewError = ref('')
-const creatingTargetFor = ref('')
-const createdTargets = ref<Array<{ target_doctype: string; name: string }>>([])
+const submittingFor = ref('')
+
+const purchaseReceiptTarget = computed(() =>
+  preview.value?.targets?.find((target) => target.target_doctype === 'Purchase Receipt') || null
+)
 
 const formatCurrency = (value: number) => `KSh ${Number(value || 0).toLocaleString()}`
 const formatDate = (value: string) => new Date(value).toLocaleDateString('en-KE')
-const formatPayload = (payload: Record<string, any>) => JSON.stringify(payload, null, 2)
 
 const loadFuelPurchases = async () => {
   loading.value = true
@@ -405,7 +428,7 @@ const loadPreview = async (name: string) => {
   try {
     preview.value = await operationsBridgeApi.previewFuelPurchaseMapping(name)
   } catch (error: any) {
-    previewError.value = error?.response?.data?.message || error?.message || 'Failed to load ERPNext mapping preview.'
+    previewError.value = error?.response?.data?.message || error?.message || 'Failed to load delivery summary.'
   } finally {
     previewLoading.value = false
   }
@@ -416,24 +439,51 @@ const selectPurchase = async (row: FuelPurchaseRow) => {
   await loadPreview(row.name)
 }
 
-const createTarget = async (row: FuelPurchaseRow, targetDoctype: 'Purchase Receipt' | 'Purchase Invoice') => {
-  const key = `${row.name}:${targetDoctype}`
-  creatingTargetFor.value = key
+const submitPurchase = async (row: FuelPurchaseRow) => {
+  submittingFor.value = row.name
   previewError.value = ''
 
   try {
-    const result = await operationsBridgeApi.createFuelPurchaseTarget(row.name, targetDoctype)
-    createdTargets.value = [
-      { target_doctype: result.target_doctype, name: result.name },
-      ...createdTargets.value.filter((entry) => !(entry.target_doctype === result.target_doctype && entry.name === result.name)),
-    ]
+    await fuelApi.submitFuelPurchase(row.name)
+    await loadFuelPurchases()
     if (selectedPurchase.value?.name === row.name) {
+      const refreshed = fuelPurchases.value.find((entry) => entry.name === row.name)
+      if (refreshed) selectedPurchase.value = refreshed
       await loadPreview(row.name)
     }
   } catch (error: any) {
-    previewError.value = error?.response?.data?.message || error?.message || `Failed to create ${targetDoctype}.`
+    previewError.value = error?.response?.data?.message || error?.message || 'Failed to submit fuel purchase.'
   } finally {
-    creatingTargetFor.value = ''
+    submittingFor.value = ''
+  }
+}
+
+// National Oil Githunguri is the only operating company for this site's forecourt —
+// scoping warehouse lookups to it keeps unrelated (e.g. test) companies out of the picker.
+const DEFAULT_COMPANY = 'National Oil Githunguri'
+
+const itemOptions = ref<MasterRecord[]>([])
+const warehouseOptions = ref<MasterRecord[]>([])
+const supplierOptions = ref<MasterRecord[]>([])
+const fuelTypeOptions = ref<MasterRecord[]>([])
+const driverOptions = ref<MasterRecord[]>([])
+
+const loadFormOptions = async () => {
+  try {
+    const [items, warehouses, suppliers, fuelTypes, drivers] = await Promise.all([
+      mastersApi.list('Item', '', 50),
+      mastersApi.list('Warehouse', '', 50, DEFAULT_COMPANY),
+      mastersApi.list('Supplier', '', 100),
+      mastersApi.list('Fuel Type', '', 20),
+      mastersApi.list('Driver', '', 100),
+    ])
+    itemOptions.value = items.records.filter((item) => item.is_stock_item && !item.disabled)
+    warehouseOptions.value = warehouses.records.filter((wh) => !wh.is_group && !wh.disabled)
+    supplierOptions.value = suppliers.records
+    fuelTypeOptions.value = fuelTypes.records
+    driverOptions.value = drivers.records
+  } catch (error) {
+    // Non-fatal — form falls back to auto-resolution from Fuel Type.
   }
 }
 
@@ -446,6 +496,8 @@ const form = reactive({
   supplier: '',
   fuel_type: '',
   unit_of_measure: 'Litres',
+  item_code: '',
+  warehouse: '',
   actual_quantity: 0,
   unit_cost: 0,
   payment_method: '',
@@ -463,6 +515,8 @@ const openCreate = () => {
   form.supplier = ''
   form.fuel_type = ''
   form.unit_of_measure = 'Litres'
+  form.item_code = ''
+  form.warehouse = ''
   form.actual_quantity = 0
   form.unit_cost = 0
   form.payment_method = ''
@@ -495,6 +549,8 @@ const saveForm = async () => {
     }
     if (form.payment_method) payload.payment_method = form.payment_method
     if (form.amount_paid) payload.amount_paid = form.amount_paid
+    if (form.item_code) payload.item_code = form.item_code
+    if (form.warehouse) payload.warehouse = form.warehouse
     if (form.driver.trim()) payload.driver = form.driver.trim()
     if (form.car_plate.trim()) payload.car_plate = form.car_plate.trim()
     if (form.comments.trim()) payload.comments = form.comments.trim()
@@ -510,6 +566,6 @@ const saveForm = async () => {
 }
 
 onMounted(async () => {
-  await loadFuelPurchases()
+  await Promise.all([loadFuelPurchases(), loadFormOptions()])
 })
 </script>
