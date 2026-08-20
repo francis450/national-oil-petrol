@@ -1,193 +1,259 @@
 <template>
-  <nav class="space-y-1">
-    <!-- Dashboard -->
-    <router-link
-      to="/"
-      :class="[
-        'group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-        isActive('/') 
-          ? 'bg-deepseek-blue bg-opacity-20 text-deepseek-blue border-l-4 border-deepseek-blue' 
-          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-300'
-      ]"
-    >
-      <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-      </svg>
-      Dashboard
-    </router-link>
+	<nav class="space-y-2">
+		<!-- Dashboard -->
+		<router-link
+			to="/"
+			:class="[
+				'group flex items-center gap-3 px-4 py-3 rounded-xl',
+				'text-sm font-medium transition-all duration-200',
+				isActive('/')
+					? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
+					: 'text-gray-400 hover:bg-surface hover:text-gray-300',
+			]"
+		>
+			<div
+				class="w-8 h-8 rounded-xl bg-primary-600/10 flex items-center justify-center group-hover:bg-primary-600/20 transition-colors"
+			>
+				<svg
+					class="w-4 h-4"
+					:class="isActive('/') ? 'text-white' : 'text-primary-500'"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+					/>
+				</svg>
+			</div>
+			<span>Dashboard</span>
+		</router-link>
 
-    <!-- Fuel Operations (Collapsible) -->
-    <SidebarMenuGroup 
-      :label="'Fuel Operations'" 
-      :expanded="expandedGroups.fuel"
-      @toggle="toggleGroup('fuel')"
-    >
-      <router-link to="/fuel/purchases" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Fuel Purchases
-      </router-link>
-      <router-link to="/fuel/readings" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Pump Readings
-      </router-link>
-      <router-link v-if="!isPumpAttendantOnly" to="/fuel/shifts" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Shift Assignments
-      </router-link>
-      <router-link to="/fuel/prices" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Fuel Prices
-      </router-link>
-    </SidebarMenuGroup>
+		<!-- Fuel Operations (Collapsible) -->
+		<SidebarMenuGroup
+			:label="'Fuel Operations'"
+			:icon="'FuelPump'"
+			:expanded="expandedGroups.fuel"
+			@toggle="toggleGroup('fuel')"
+		>
+			<router-link
+				v-for="item in fuelItems"
+				:key="item.path"
+				:to="item.path"
+				class="menu-subitem"
+			>
+				<div class="w-2 h-2 rounded-full bg-primary-500 mr-3" />
+				<span>{{ item.label }}</span>
+			</router-link>
+		</SidebarMenuGroup>
 
-    <!-- Sales (Collapsible) -->
-    <SidebarMenuGroup
-      v-if="canAccessModule('sales')"
-      :label="'Sales'"
-      :expanded="expandedGroups.sales"
-      @toggle="toggleGroup('sales')"
-    >
-      <router-link to="/sales/entries" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Sales Entries
-      </router-link>
-      <router-link to="/sales/targets" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Sales Targets
-      </router-link>
-    </SidebarMenuGroup>
+		<!-- Sales (Collapsible) -->
+		<SidebarMenuGroup
+			v-if="canAccessModule('sales')"
+			:label="'Sales'"
+			:icon="'ShoppingCart'"
+			:expanded="expandedGroups.sales"
+			@toggle="toggleGroup('sales')"
+		>
+			<router-link
+				v-for="item in salesItems"
+				:key="item.path"
+				:to="item.path"
+				class="menu-subitem"
+			>
+				<div class="w-2 h-2 rounded-full bg-success-500 mr-3" />
+				<span>{{ item.label }}</span>
+			</router-link>
+		</SidebarMenuGroup>
 
-    <!-- Receivables: PARKED pending a credit-sales decision (see docs/ERP_REUSE_STRATEGY.md).
-         Hidden from nav for all roles, not just role-gated — routes are also blocked in the
-         router guard below. -->
+		<!-- Payables (Collapsible) -->
+		<SidebarMenuGroup
+			v-if="canAccessModule('payables')"
+			:label="'Payables'"
+			:icon="'CreditCard'"
+			:expanded="expandedGroups.payables"
+			@toggle="toggleGroup('payables')"
+		>
+			<router-link
+				v-for="item in payablesItems"
+				:key="item.path"
+				:to="item.path"
+				class="menu-subitem"
+			>
+				<div class="w-2 h-2 rounded-full bg-warning-500 mr-3" />
+				<span>{{ item.label }}</span>
+			</router-link>
+		</SidebarMenuGroup>
 
-    <!-- Payables (Collapsible) -->
-    <SidebarMenuGroup
-      v-if="canAccessModule('payables')"
-      :label="'Payables'"
-      :expanded="expandedGroups.payables"
-      @toggle="toggleGroup('payables')"
-    >
-      <router-link to="/payables/credits" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Supplier Credits
-      </router-link>
-      <router-link to="/payables/payments" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Credit Payments
-      </router-link>
-    </SidebarMenuGroup>
+		<!-- Divider -->
+		<div class="my-4 border-t border-border"></div>
 
-    <!-- Divider -->
-    <div class="my-4 border-t border-gray-800"></div>
+		<!-- Inventory (Collapsible) -->
+		<SidebarMenuGroup
+			v-if="canAccessModule('inventory')"
+			:label="'Inventory'"
+			:icon="'Box'"
+			:expanded="expandedGroups.inventory"
+			@toggle="toggleGroup('inventory')"
+		>
+			<router-link
+				v-for="item in inventoryItems"
+				:key="item.path"
+				:to="item.path"
+				class="menu-subitem"
+			>
+				<div class="w-2 h-2 rounded-full bg-info-500 mr-3" />
+				<span>{{ item.label }}</span>
+			</router-link>
+		</SidebarMenuGroup>
 
-    <!-- Inventory (Collapsible) -->
-    <SidebarMenuGroup
-      v-if="canAccessModule('inventory')"
-      :label="'Inventory'"
-      :expanded="expandedGroups.inventory"
-      @toggle="toggleGroup('inventory')"
-    >
-      <router-link to="/inventory/receipts" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Inventory Receipts
-      </router-link>
-      <router-link to="/inventory/products" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Products
-      </router-link>
-    </SidebarMenuGroup>
+		<!-- Finance (Collapsible) -->
+		<SidebarMenuGroup
+			v-if="canAccessModule('finance')"
+			:label="'Finance'"
+			:icon="'Banknote'"
+			:expanded="expandedGroups.finance"
+			@toggle="toggleGroup('finance')"
+		>
+			<router-link
+				v-for="item in financeItems"
+				:key="item.path"
+				:to="item.path"
+				class="menu-subitem"
+			>
+				<div class="w-2 h-2 rounded-full bg-purple-500 mr-3" />
+				<span>{{ item.label }}</span>
+			</router-link>
+		</SidebarMenuGroup>
 
-    <!-- Finance (Collapsible) -->
-    <SidebarMenuGroup
-      v-if="canAccessModule('finance')"
-      :label="'Finance'"
-      :expanded="expandedGroups.finance"
-      @toggle="toggleGroup('finance')"
-    >
-      <router-link to="/finance/accounts" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Petty Cash Accounts
-      </router-link>
-      <router-link to="/finance/entries" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Petty Cash Entries
-      </router-link>
-    </SidebarMenuGroup>
+		<!-- HR (Collapsible) -->
+		<SidebarMenuGroup
+			v-if="canAccessModule('hr')"
+			:label="'Human Resources'"
+			:icon="'Users'"
+			:expanded="expandedGroups.hr"
+			@toggle="toggleGroup('hr')"
+		>
+			<router-link
+				v-for="item in hrItems"
+				:key="item.path"
+				:to="item.path"
+				class="menu-subitem"
+			>
+				<div class="w-2 h-2 rounded-full bg-pink-500 mr-3" />
+				<span>{{ item.label }}</span>
+			</router-link>
+		</SidebarMenuGroup>
 
-    <!-- HR (Collapsible) -->
-    <SidebarMenuGroup
-      v-if="canAccessModule('hr')"
-      :label="'Human Resources'"
-      :expanded="expandedGroups.hr"
-      @toggle="toggleGroup('hr')"
-    >
-      <router-link to="/hr/employees" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Employees
-      </router-link>
-      <router-link to="/hr/attendance" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Attendance
-      </router-link>
-      <router-link to="/hr/leave" class="menu-subitem">
-        <span class="w-1 h-1 rounded-full bg-gray-600 mr-3"></span>
-        Leave Applications
-      </router-link>
-    </SidebarMenuGroup>
-
-    <!-- Reports -->
-    <router-link
-      v-if="canAccessModule('reports')"
-      to="/reports"
-      :class="[
-        'group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-        isActive('/reports')
-          ? 'bg-deepseek-blue bg-opacity-20 text-deepseek-blue border-l-4 border-deepseek-blue'
-          : 'text-gray-400 hover:bg-gray-800 hover:text-gray-300'
-      ]"
-    >
-      <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm0 8a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" />
-      </svg>
-      Reports
-    </router-link>
-  </nav>
+		<!-- Reports -->
+		<router-link
+			v-if="canAccessModule('reports')"
+			to="/reports"
+			:class="[
+				'group flex items-center gap-3 px-4 py-3 rounded-xl',
+				'text-sm font-medium transition-all duration-200',
+				isActive('/reports')
+					? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
+					: 'text-gray-400 hover:bg-surface hover:text-gray-300',
+			]"
+		>
+			<div
+				class="w-8 h-8 rounded-xl bg-primary-600/10 flex items-center justify-center group-hover:bg-primary-600/20 transition-colors"
+			>
+				<svg
+					class="w-4 h-4"
+					:class="isActive('/reports') ? 'text-white' : 'text-primary-500'"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+					/>
+				</svg>
+			</div>
+			<span>Reports</span>
+		</router-link>
+	</nav>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
-import SidebarMenuGroup from './SidebarMenuGroup.vue'
-import { usePermissions } from '@/composables/usePermissions'
+import { computed, ref } from "vue";
+import { useRoute } from "vue-router";
+import SidebarMenuGroup from "./SidebarMenuGroup.vue";
+import { usePermissions } from "@/composables/usePermissions";
 
-const route = useRoute()
-const { canAccessModule, isPumpAttendantOnly } = usePermissions()
+const route = useRoute();
+const { canAccessModule, isPumpAttendantOnly } = usePermissions();
 
 const expandedGroups = ref({
-  fuel: false,
-  sales: false,
-  payables: false,
-  inventory: false,
-  finance: false,
-  hr: false,
-})
+	fuel: false,
+	sales: false,
+	payables: false,
+	inventory: false,
+	finance: false,
+	hr: false,
+});
 
 const toggleGroup = (group: keyof typeof expandedGroups.value) => {
-  expandedGroups.value[group] = !expandedGroups.value[group]
-}
+	expandedGroups.value[group] = !expandedGroups.value[group];
+};
 
 const isActive = (path: string) => {
-  return route.path === path || route.path.startsWith(path + '/')
-}
+	return route.path === path || route.path.startsWith(path + "/");
+};
+
+// Menu items
+const fuelItems = computed(() => [
+	{ path: "/fuel/purchases", label: "Fuel Purchases" },
+	{ path: "/fuel/readings", label: "Pump Readings" },
+	...(isPumpAttendantOnly.value
+		? []
+		: [{ path: "/fuel/shifts", label: "Shift Assignments" }]),
+	{ path: "/fuel/prices", label: "Fuel Prices" },
+]);
+
+const salesItems = [
+	{ path: "/sales/entries", label: "Sales Entries" },
+	{ path: "/sales/targets", label: "Sales Targets" },
+];
+
+const payablesItems = [
+	{ path: "/payables/credits", label: "Supplier Credits" },
+	{ path: "/payables/payments", label: "Credit Payments" },
+];
+
+const inventoryItems = [
+	{ path: "/inventory/receipts", label: "Inventory Receipts" },
+	{ path: "/inventory/products", label: "Products" },
+];
+
+const financeItems = [
+	{ path: "/finance/accounts", label: "Petty Cash Accounts" },
+	{ path: "/finance/entries", label: "Petty Cash Entries" },
+];
+
+const hrItems = [
+	{ path: "/hr/employees", label: "Employees" },
+	{ path: "/hr/attendance", label: "Attendance" },
+	{ path: "/hr/leave", label: "Leave Applications" },
+];
 </script>
 
 <style scoped>
 .menu-subitem {
-  @apply flex items-center px-4 py-2.5 text-xs font-medium rounded-lg text-gray-400 hover:bg-gray-800 hover:text-deepseek-blue transition-colors ml-1 my-1;
+	@apply flex items-center gap-3 px-4 py-2.5 text-sm rounded-xl;
+	@apply text-gray-400 hover:bg-surface hover:text-gray-300;
+	@apply transition-colors ml-6;
 }
 
 .menu-subitem.router-link-active {
-  @apply bg-gray-800 text-deepseek-blue;
+	@apply bg-surface-elevated text-primary-400;
 }
 </style>
